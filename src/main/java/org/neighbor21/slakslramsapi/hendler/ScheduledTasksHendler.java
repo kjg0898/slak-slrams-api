@@ -5,6 +5,7 @@ import org.neighbor21.slakslramsapi.dto.TL_RIS_ROADWIDTHDTO;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_ROUGH_DISTRIDTO;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_SURFACEDTO;
 import org.neighbor21.slakslramsapi.dto.TL_TIS_AADTDTO;
+import org.neighbor21.slakslramsapi.service.SaveAfterDtoToEntity;
 import org.neighbor21.slakslramsapi.service.SlamsApiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,8 @@ public class ScheduledTasksHendler {
 
     @Autowired
     private SlamsApiService slamsApiService;
-
+    @Autowired
+    private SaveAfterDtoToEntity saveAfterDtoToEntity;
 
     @PostConstruct
     public void init() {
@@ -41,32 +43,47 @@ public class ScheduledTasksHendler {
 
 
     @Scheduled(cron = "*/5 * * * * * ")
-    public void risDataCallApi() {
+    public void roadWidthDataCallApi() {
 
         try {
             //TL_RIS_ROADWIDTH api 호출
             List<TL_RIS_ROADWIDTHDTO> risRoadWidths = slamsApiService.risRoadWidths();
-            ////*
-            // insertTL_MVMNEQ_PASS 에서 한번에 배치 처리
-            ////*
 
+            if (!risRoadWidths.isEmpty()) {
+                saveAfterDtoToEntity.insertTL_RIS_ROADWIDTH(risRoadWidths); // 엔티티 변환 및 배치 처리
+            }
+        } catch (Exception e) {
+            logger.error("Failed to fetch and store RoadWidth data : {}", e.getMessage());
+        }
+    }
 
+    @Scheduled(cron = "*/5 * * * * * ")
+    public void roughDataCallApi() {
+
+        try {
             //TL_RIS_ROUGH_DISTRI api 호출
             List<TL_RIS_ROUGH_DISTRIDTO> risRoughDistris = slamsApiService.risRoughDistris();
-            ////*
-            // insertTL_MVMNEQ_PASS 에서 한번에 배치 처리
-            ////*
-
-
-            //TL_RIS_SURFACE api 호출
-            List<TL_RIS_SURFACEDTO> risSurfaces = slamsApiService.risSurfaces();
-            ////*
-            // insertTL_MVMNEQ_PASS 에서 한번에 배치 처리
-            ////*
-
+            if (!risRoughDistris.isEmpty()) {
+                saveAfterDtoToEntity.insertTL_RIS_ROUGH_DISTRI(risRoughDistris); // 엔티티 변환 및 배치 처리
+            }
 
         } catch (Exception e) {
-            logger.error("Failed to fetch and store RIS data : {}",e.getMessage());
+            logger.error("Failed to fetch and store RoughDistri data : {}", e.getMessage());
+        }
+    }
+
+    @Scheduled(cron = "*/5 * * * * * ")
+    public void surfaceDataCallApi() {
+
+        try {
+            //TL_RIS_SURFACE api 호출
+            List<TL_RIS_SURFACEDTO> risSurfaces = slamsApiService.risSurfaces();
+            if (!risSurfaces.isEmpty()) {
+                saveAfterDtoToEntity.insertTL_RIS_SURFACE(risSurfaces); // 엔티티 변환 및 배치 처리
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to fetch and store surface data : {}", e.getMessage());
         }
     }
 
@@ -76,13 +93,13 @@ public class ScheduledTasksHendler {
         try {
             //TL_RIS_ROADWIDTH api 호출
             List<TL_TIS_AADTDTO> tisAadts = slamsApiService.tisAadts();
-            ////*
-            // insertTL_MVMNEQ_PASS 에서 한번에 배치 처리
-            ////*
+            if (!tisAadts.isEmpty()) {
+                saveAfterDtoToEntity.insertTL_TIS_AADT(tisAadts); // 엔티티 변환 및 배치 처리
+            }
 
 
         } catch (Exception e) {
-            logger.error("Failed to fetch and store TIS data : {}",e.getMessage());
+            logger.error("Failed to fetch and store TIS data : {}", e.getMessage());
         }
     }
 }

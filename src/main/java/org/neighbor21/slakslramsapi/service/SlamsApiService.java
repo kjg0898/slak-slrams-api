@@ -12,8 +12,11 @@ import org.neighbor21.slakslramsapi.dto.TL_RIS_SURFACEDTO;
 import org.neighbor21.slakslramsapi.dto.TL_TIS_AADTDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +35,9 @@ import java.util.List;
 public class SlamsApiService {
     private static final Logger logger = LoggerFactory.getLogger(SlamsApiService.class);
 
+    @Autowired
+    private CollectionDateTimeService collectionDateTimeService;
+
     public SlamsApiService() {
         //서비스 인스턴스화 시 Unirest 구성 재설정
         resetUnirestConfig();
@@ -47,17 +53,22 @@ public class SlamsApiService {
     public List<TL_RIS_ROADWIDTHDTO> risRoadWidths() throws UnirestException {
         resetUnirestConfig();
         try {
+            //가장 최신의 수집일시를 디비에서 조회하여 값을 가져오기 위해 (배치처리 or jpa 에서 saveall 할때 셀렉트 하는걸 무시할것이기 때문에 중복값이 들어갈수 있으므로 이전에 이미 조회한것을 조회하지 않도록하기 위해서)
+            Timestamp latestTimestamp = collectionDateTimeService.roadwidthLatestCollectionDateTime(); // 가장 최근 수집일시 가져오기
+            String formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(latestTimestamp);
+
             HttpResponse<String> response = Unirest.post("--------------------------------------------------------------------------------------------------")
                     .header("APIKEY", "Your API KEY")
-                    .body("")
+                    .queryString("since", formattedTimestamp) // 수집일시 이후의 데이터만 요청
+                    //.body("")
                     .asString();
             logger.debug(String.valueOf(response.getBody()));
             logger.debug(String.valueOf(response.getHeaders()));
-            // 응답 데이터 body 반환
+            // 응답 데이터  반환
             if (response.getStatus() == 200) {
-                List<TL_RIS_ROADWIDTHDTO> roadwidths = new ObjectMapper().readValue(response.getBody(), new TypeReference<List<TL_RIS_ROADWIDTHDTO>>() {
+                List<TL_RIS_ROADWIDTHDTO> roadwidths = new ObjectMapper().readValue(response.getBody(), new TypeReference<>() {
                 });
-                logger.info("response RIS_Road_width Data: {} ", roadwidths);
+                logger.info("Successfully fetched RIS_Road_width Data: {}", roadwidths);
                 return roadwidths;
             } else {
                 logger.warn("Failed to fetch RIS_Road_width : HTTP {}", response.getStatus());
@@ -72,21 +83,27 @@ public class SlamsApiService {
         }
     }
 
+
     // RIS 거칠기 분포 정보 데이터 API 호출
     public List<TL_RIS_ROUGH_DISTRIDTO> risRoughDistris() throws UnirestException {
         resetUnirestConfig();
         try {
+            //가장 최신의 수집일시를 디비에서 조회하여 값을 가져오기 위해 (배치처리 or jpa 에서 saveall 할때 셀렉트 하는걸 무시할것이기 때문에 중복값이 들어갈수 있으므로 이전에 이미 조회한것을 조회하지 않도록하기 위해서)
+            Timestamp latestTimestamp = collectionDateTimeService.roughDistriLatestCollectionDateTime(); // 가장 최근 수집일시 가져오기
+            String formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(latestTimestamp);
+
             HttpResponse<String> response = Unirest.post("--------------------------------------------------------------------------------------------------")
                     .header("APIKEY", "Your API KEY")
-                    .body("")
+                    .queryString("since", formattedTimestamp) // 수집일시 이후의 데이터만 요청
+                    //.body("")
                     .asString();
             logger.debug(String.valueOf(response.getBody()));
             logger.debug(String.valueOf(response.getHeaders()));
             // 응답 데이터 body 반환
             if (response.getStatus() == 200) {
-                List<TL_RIS_ROUGH_DISTRIDTO> roughDistris = new ObjectMapper().readValue(response.getBody(), new TypeReference<List<TL_RIS_ROUGH_DISTRIDTO>>() {
+                List<TL_RIS_ROUGH_DISTRIDTO> roughDistris = new ObjectMapper().readValue(response.getBody(), new TypeReference<>() {
                 });
-                logger.info("response RIS_Rough_Distri Data: {} ", roughDistris);
+                logger.info("Successfully fetched RIS_Rough_Distri Data: {} ", roughDistris);
                 return roughDistris;
             } else {
                 logger.warn("Failed to fetch RIS_Rough_Distri : HTTP {}", response.getStatus());
@@ -101,21 +118,27 @@ public class SlamsApiService {
         }
     }
 
+
     // RIS 표면 유형 정보 데이터 API 호출
     public List<TL_RIS_SURFACEDTO> risSurfaces() throws UnirestException {
         resetUnirestConfig();
         try {
+            //가장 최신의 수집일시를 디비에서 조회하여 값을 가져오기 위해 (배치처리 or jpa 에서 saveall 할때 셀렉트 하는걸 무시할것이기 때문에 중복값이 들어갈수 있으므로 이전에 이미 조회한것을 조회하지 않도록하기 위해서)
+            Timestamp latestTimestamp = collectionDateTimeService.surfaceLatestCollectionDateTime(); // 가장 최근 수집일시 가져오기
+            String formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(latestTimestamp);
+
             HttpResponse<String> response = Unirest.post("--------------------------------------------------------------------------------------------------")
                     .header("APIKEY", "Your API KEY")
-                    .body("")
+                    .queryString("since", formattedTimestamp) // 수집일시 이후의 데이터만 요청
+                    //.body("")
                     .asString();
             logger.debug(String.valueOf(response.getBody()));
             logger.debug(String.valueOf(response.getHeaders()));
             // 응답 데이터 body 반환
             if (response.getStatus() == 200) {
-                List<TL_RIS_SURFACEDTO> surfaces = new ObjectMapper().readValue(response.getBody(), new TypeReference<List<TL_RIS_SURFACEDTO>>() {
+                List<TL_RIS_SURFACEDTO> surfaces = new ObjectMapper().readValue(response.getBody(), new TypeReference<>() {
                 });
-                logger.info("response RIS_Surface Data: {} ", surfaces);
+                logger.info("Successfully fetched RIS_Surface Data: {} ", surfaces);
                 return surfaces;
             } else {
                 logger.warn("Failed to fetch RIS_Surface : HTTP {}", response.getStatus());
@@ -134,17 +157,22 @@ public class SlamsApiService {
     public List<TL_TIS_AADTDTO> tisAadts() throws UnirestException {
         resetUnirestConfig();
         try {
+            //가장 최신의 수집일시를 디비에서 조회하여 값을 가져오기 위해 (배치처리 or jpa 에서 saveall 할때 셀렉트 하는걸 무시할것이기 때문에 중복값이 들어갈수 있으므로 이전에 이미 조회한것을 조회하지 않도록하기 위해서)
+            Timestamp latestTimestamp = collectionDateTimeService.aadtLatestCollectionDateTime(); // 가장 최근 수집일시 가져오기
+            String formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(latestTimestamp);
+
             HttpResponse<String> response = Unirest.post("--------------------------------------------------------------------------------------------------")
                     .header("APIKEY", "Your API KEY")
-                    .body("")
+                    .queryString("since", formattedTimestamp) // 수집일시 이후의 데이터만 요청
+                    //.body("")
                     .asString();
             logger.debug(String.valueOf(response.getBody()));
             logger.debug(String.valueOf(response.getHeaders()));
             // 응답 데이터 body 반환
             if (response.getStatus() == 200) {
-                List<TL_TIS_AADTDTO> aadts = new ObjectMapper().readValue(response.getBody(), new TypeReference<List<TL_TIS_AADTDTO>>() {
+                List<TL_TIS_AADTDTO> aadts = new ObjectMapper().readValue(response.getBody(), new TypeReference<>() {
                 });
-                logger.info("response TIS_AADT Data: {} ", aadts);
+                logger.info("Successfully fetched TIS_AADT Data: {} ", aadts);
                 return aadts;
             } else {
                 logger.warn("Failed to fetch TIS_AADT : HTTP {}", response.getStatus());

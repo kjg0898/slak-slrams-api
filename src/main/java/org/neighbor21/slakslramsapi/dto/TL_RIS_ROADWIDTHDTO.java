@@ -1,9 +1,11 @@
 package org.neighbor21.slakslramsapi.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 
 /**
  * packageName    : org.neighbor21.slakslramsapi.dto
@@ -33,6 +35,6 @@ public class TL_RIS_ROADWIDTHDTO {
     //설문 년
     private String surveyYear;
     //수집 일시
-    private Timestamp collectionDateTime;
+    //private Timestamp collectionDateTime;
 
 }
