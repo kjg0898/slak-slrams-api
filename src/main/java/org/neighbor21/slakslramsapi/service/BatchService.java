@@ -42,17 +42,15 @@ public class BatchService {
     @Transactional
     public void batchInsertWithRetry(List<?> entities) {
         int batchSize = 50;
-
         Retry retry = Retry.of("batchInsert", retryConfig);
 
         AtomicInteger index = new AtomicInteger(0);
 
         entities.forEach(entity -> {
             Supplier<Boolean> insertSupplier = Retry.decorateSupplier(retry, () -> {
-                int currentIndex = 0;
+                int currentIndex = index.incrementAndGet();
                 try {
                     entityManager.persist(entity);
-                    currentIndex = index.incrementAndGet();
                     if (currentIndex % batchSize == 0 || currentIndex == entities.size()) {
                         entityManager.flush();
                         entityManager.clear();
