@@ -35,6 +35,7 @@ import java.util.List;
 @Service
 public class SlamsApiService {
     private static final Logger logger = LoggerFactory.getLogger(SlamsApiService.class);
+    private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Autowired
     private CollectionDateTimeService collectionDateTimeService;
@@ -72,27 +73,33 @@ public class SlamsApiService {
         try {
             //가장 최신의 수집일시를 디비에서 조회하여 값을 가져오기 위해 (배치처리 or jpa 에서 saveall 할때 셀렉트 하는걸 무시할것이기 때문에 중복값이 들어갈수 있으므로 이전에 이미 조회한것을 조회하지 않도록하기 위해서)
             Timestamp latestTimestamp = collectionDateTimeService.getLatestCollectionDateTime(timestampKey);
-            String formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(latestTimestamp);
+            String formattedTimestamp = new SimpleDateFormat(TIMESTAMP_FORMAT).format(latestTimestamp);//시간값 포맷팅
 
             HttpResponse<String> response = Unirest.post(url)
                     .header("APIKEY", apiKey)
                     .queryString("since", formattedTimestamp) // 수집일시 이후의 데이터만 요청
                     .asString();
+
             // 응답 데이터 body 반환
             if (response.getStatus() == 200) {
                 return new ObjectMapper().readValue(response.getBody(), typeReference);
             } else {
-                logger.warn("Failed to fetch data from {}: HTTP {}", url, response.getStatus());
+                logger.warn("Failed to fetch data from {}: HTTP {} - {}", url, response.getStatus(), response.getStatusText());
                 return Collections.emptyList();
             }
         } catch (JsonProcessingException e) {
-            logger.error("Error parsing response from {}", url, e);
+            logger.error("Error parsing response from {}: {}", url, e.getMessage(), e);
             throw new RuntimeException("JSON parsing error", e);
         } catch (UnirestException e) {
-            logger.error("Error fetching data from {}", url, e);
+            if (e.getCause() instanceof java.net.UnknownHostException) {
+                logger.error("Unknown host: {} - Please check the URL or network connection", url, e);
+            } else {
+                logger.error("Error fetching data from {}: {}", url, e.getMessage(), e);
+            }
             throw e;
         }
     }
+
 
     //*
     //url,시간 키값 전달, TypeReference : 각 타입으로 json 데이터를 파싱
@@ -120,15 +127,6 @@ public class SlamsApiService {
         return fetchApiData(aadtApiUrl, "aadt", new TypeReference<>() {
         });
     }
-
-
-
-
-
-
-
-
-
 
 
 

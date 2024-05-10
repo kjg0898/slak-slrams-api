@@ -1,13 +1,18 @@
 package org.neighbor21.slakslramsapi.service;
 
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * packageName    : org.neighbor21.slakslramsapi.service
@@ -24,15 +29,63 @@ import java.util.List;
 public class BatchService {
     private static final Logger logger = LoggerFactory.getLogger(BatchService.class);
 
-    //배치처리
     @PersistenceContext
     private EntityManager entityManager;
 
-    /**
-     * 일괄 삽입을 시도하고, 실패할 경우 재시도하는 메서드.
-     *
-     * @param entities 삽입할 엔티티 리스트
-     */
+    private final RetryConfig retryConfig;
+
+    @Autowired
+    public BatchService(RetryConfig retryConfig) {
+        this.retryConfig = retryConfig;
+    }
+
+    @Transactional
+    public void batchInsertWithRetry(List<?> entities) {
+        int batchSize = 50;
+
+        Retry retry = Retry.of("batchInsert", retryConfig);
+
+        AtomicInteger index = new AtomicInteger(0);
+
+        entities.forEach(entity -> {
+            Supplier<Boolean> insertSupplier = Retry.decorateSupplier(retry, () -> {
+                int currentIndex = 0;
+                try {
+                    entityManager.persist(entity);
+                    currentIndex = index.incrementAndGet();
+                    if (currentIndex % batchSize == 0 || currentIndex == entities.size()) {
+                        entityManager.flush();
+                        entityManager.clear();
+                    }
+                    return true;
+                } catch (Exception e) {
+                    logger.warn("Attempt to insert entity at index {} failed: {}", currentIndex, e.getMessage(), e);
+                    entityManager.clear();
+                    throw e;
+                }
+            });
+
+            try {
+                insertSupplier.get();
+            } catch (Exception e) {
+                logger.error("Failed to insert entity at index {} after retries", index.get(), e);
+            }
+        });
+    }
+}
+
+//스레드 슬립을 사용한 지수 백오프 , 더 효율적인 라이브러리 사용 위해 주석처리
+/*
+ * 일괄 삽입을 시도하고, 실패할 경우 재시도하는 메서드.
+ *
+ * @param entities 삽입할 엔티티 리스트
+ * <p>
+ * 백오프 로직: 재시도 간의 대기 시간을 지연시키는 메서드.
+ * @param retryCount 현재 재시도 횟수
+ * <p>
+ * 백오프 로직: 재시도 간의 대기 시간을 지연시키는 메서드.
+ * @param retryCount 현재 재시도 횟수
+ *//*
     @Transactional
     public void batchInsertWithRetry(List<?> entities) {
         // 최대 재시도 횟수
@@ -53,7 +106,7 @@ public class BatchService {
                     success = true;  // 성공하면 루프 탈출
                 } catch (Exception e) {
                     retryCount++;
-                    logger.error("Retry " + retryCount + " for entity at index " + i + " failed: " + e.getMessage(), e);
+                    logger.warn("Retry " + retryCount + " for entity at index " + i + " failed: " + e.getMessage(), e);
                     entityManager.clear();  // 실패 시 entityManager를 clear 하고 다시 시도
                     if (retryCount < maxRetries) {
                         backOff(retryCount);  // 백오프 로직으로 대체
@@ -65,18 +118,16 @@ public class BatchService {
             }
         }
     }
-    /**
-     * 백오프 로직: 재시도 간의 대기 시간을 지연시키는 메서드.
-     *
-     * @param retryCount 현재 재시도 횟수
-     */
+ // 백오프 로직: 재시도 간의 대기 시간을 지연시키는 메서드.
+ //
+ // @param retryCount 현재 재시도 횟수
+
     private void backOff(int retryCount) {
         try {
-            long backOffTime = (long) Math.pow(2, retryCount) * 100L; // 지수 백오프
+            long backOffTime = (long) Math.pow(2, retryCount) * 100L; // 지수 백오프 (재시도 횟수에 따라 지연 대기시간을 늘린다)
             Thread.sleep(backOffTime);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
             logger.error("Thread interrupted during backoff delay", ie);
         }
-    }
-}
+    }*/

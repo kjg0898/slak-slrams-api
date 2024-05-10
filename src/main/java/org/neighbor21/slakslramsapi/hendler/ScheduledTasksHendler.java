@@ -49,7 +49,7 @@ public class ScheduledTasksHendler {
             }
             logger.info("Completed {} successfully", taskName);
         } catch (Exception e) {
-            logger.error("Failed to execute {}: {}", taskName, e.getMessage(), e);
+            logger.warn("Failed to execute {}: {}", taskName, e.getMessage(), e);
         }
     }
 
@@ -72,11 +72,6 @@ public class ScheduledTasksHendler {
     public void tisDataCallApi() {
         processApiCall("tisDataCallApi", slamsApiService::tisAadts, saveAfterDtoToEntity::insertTL_TIS_AADT);
     }
-
-
-
-
-
 
 
 
