@@ -56,20 +56,9 @@ public class SlamsApiService {
     @Value("${api.key}")
     private String apiKey;
 
-    public SlamsApiService() {
-        //서비스 인스턴스화 시 Unirest 구성 재설정
-        resetUnirestConfig();
-    }
-
-    private void resetUnirestConfig() {
-        Unirest.config().reset(); // Unirest 설정을 초기화
-        Unirest.config().socketTimeout(5000).connectTimeout(5000); // 타임아웃 설정: 연결, 읽기 타임아웃을 5초로 설정
-    }
-
 
     // 공통 API 호출 메소드
     private <T> List<T> fetchApiData(String url, String timestampKey, TypeReference<List<T>> typeReference) throws UnirestException {
-        resetUnirestConfig();
         try {
             //가장 최신의 수집일시를 디비에서 조회하여 값을 가져오기 위해 (배치처리 or jpa 에서 saveall 할때 셀렉트 하는걸 무시할것이기 때문에 중복값이 들어갈수 있으므로 이전에 이미 조회한것을 조회하지 않도록하기 위해서)
             Timestamp latestTimestamp = collectionDateTimeService.getLatestCollectionDateTime(timestampKey);
