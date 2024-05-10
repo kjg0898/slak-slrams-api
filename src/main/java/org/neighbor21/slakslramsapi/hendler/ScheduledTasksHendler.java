@@ -1,10 +1,6 @@
 package org.neighbor21.slakslramsapi.hendler;
 
 import jakarta.annotation.PostConstruct;
-import org.neighbor21.slakslramsapi.dto.TL_RIS_ROADWIDTHDTO;
-import org.neighbor21.slakslramsapi.dto.TL_RIS_ROUGH_DISTRIDTO;
-import org.neighbor21.slakslramsapi.dto.TL_RIS_SURFACEDTO;
-import org.neighbor21.slakslramsapi.dto.TL_TIS_AADTDTO;
 import org.neighbor21.slakslramsapi.service.SaveAfterDtoToEntity;
 import org.neighbor21.slakslramsapi.service.SlamsApiService;
 import org.slf4j.Logger;
@@ -14,6 +10,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * packageName    : org.neighbor21.slakslramsapi.hendler
@@ -38,17 +36,58 @@ public class ScheduledTasksHendler {
 
     @PostConstruct
     public void init() {
-        // Initialization if needed
+        logger.info("ScheduledTasksHendler initialized");
+    }
+
+    private <T> void processApiCall(String taskName, Supplier<List<T>> apiCall, Consumer<List<T>> saveMethod) {
+        logger.info("Starting {}", taskName);
+        try {
+            //각 api 호출
+            List<T> dataList = apiCall.get();
+            if (!dataList.isEmpty()) {
+                saveMethod.accept(dataList); //각 엔티티 변환 및 배치 처리
+            }
+            logger.info("Completed {} successfully", taskName);
+        } catch (Exception e) {
+            logger.error("Failed to execute {}: {}", taskName, e.getMessage(), e);
+        }
+    }
+
+    @Scheduled(cron = "${scheduler.cron.roadwidth}") //TL_RIS_ROADWIDTH api 호출
+    public void roadWidthDataCallApi() {
+        processApiCall("roadWidthDataCallApi", slamsApiService::risRoadWidths, saveAfterDtoToEntity::insertTL_RIS_ROADWIDTH);
+    }
+
+    @Scheduled(cron = "${scheduler.cron.roughdistri}") //TL_RIS_ROUGH_DISTRI api 호출
+    public void roughDataCallApi() {
+        processApiCall("roughDataCallApi", slamsApiService::risRoughDistris, saveAfterDtoToEntity::insertTL_RIS_ROUGH_DISTRI);
+    }
+
+    @Scheduled(cron = "${scheduler.cron.surface}") //TL_RIS_SURFACE api 호출
+    public void surfaceDataCallApi() {
+        processApiCall("surfaceDataCallApi", slamsApiService::risSurfaces, saveAfterDtoToEntity::insertTL_RIS_SURFACE);
+    }
+
+    @Scheduled(cron = "${scheduler.cron.aadt}") //TL_TIS_AADT api 호출
+    public void tisDataCallApi() {
+        processApiCall("tisDataCallApi", slamsApiService::tisAadts, saveAfterDtoToEntity::insertTL_TIS_AADT);
     }
 
 
-    @Scheduled(cron = "*/5 * * * * * ")
-    public void roadWidthDataCallApi() {
 
+
+
+
+
+
+
+   /*
+      @Scheduled(cron = "${scheduler.cron.roadwidth}")
+    public void roadWidthDataCallApi() {
+        logger.info("Starting roadWidthDataCallApi");
         try {
             //TL_RIS_ROADWIDTH api 호출
             List<TL_RIS_ROADWIDTHDTO> risRoadWidths = slamsApiService.risRoadWidths();
-
             if (!risRoadWidths.isEmpty()) {
                 saveAfterDtoToEntity.insertTL_RIS_ROADWIDTH(risRoadWidths); // 엔티티 변환 및 배치 처리
             }
@@ -56,50 +95,45 @@ public class ScheduledTasksHendler {
             logger.error("Failed to fetch and store RoadWidth data : {}", e.getMessage());
         }
     }
-
-    @Scheduled(cron = "*/5 * * * * * ")
+   @Scheduled(cron = "${scheduler.cron.roughdistri}")
     public void roughDataCallApi() {
-
+        logger.info("Starting roughDataCallApi");
         try {
             //TL_RIS_ROUGH_DISTRI api 호출
             List<TL_RIS_ROUGH_DISTRIDTO> risRoughDistris = slamsApiService.risRoughDistris();
             if (!risRoughDistris.isEmpty()) {
                 saveAfterDtoToEntity.insertTL_RIS_ROUGH_DISTRI(risRoughDistris); // 엔티티 변환 및 배치 처리
             }
-
         } catch (Exception e) {
             logger.error("Failed to fetch and store RoughDistri data : {}", e.getMessage());
         }
     }
 
-    @Scheduled(cron = "*/5 * * * * * ")
+    @Scheduled(cron = "${scheduler.cron.surface}")
     public void surfaceDataCallApi() {
-
+        logger.info("Starting surfaceDataCallApi");
         try {
             //TL_RIS_SURFACE api 호출
             List<TL_RIS_SURFACEDTO> risSurfaces = slamsApiService.risSurfaces();
             if (!risSurfaces.isEmpty()) {
                 saveAfterDtoToEntity.insertTL_RIS_SURFACE(risSurfaces); // 엔티티 변환 및 배치 처리
             }
-
         } catch (Exception e) {
             logger.error("Failed to fetch and store surface data : {}", e.getMessage());
         }
     }
 
-    @Scheduled(cron = "*/5 * * * * * ")
+    @Scheduled(cron = "${scheduler.cron.aadt}")
     public void tisDataCallApi() {
-
+        logger.info("Starting tisDataCallApi");
         try {
-            //TL_RIS_ROADWIDTH api 호출
+            //TL_TIS_AADT api 호출
             List<TL_TIS_AADTDTO> tisAadts = slamsApiService.tisAadts();
             if (!tisAadts.isEmpty()) {
                 saveAfterDtoToEntity.insertTL_TIS_AADT(tisAadts); // 엔티티 변환 및 배치 처리
             }
-
-
         } catch (Exception e) {
             logger.error("Failed to fetch and store TIS data : {}", e.getMessage());
         }
-    }
+    }*/
 }

@@ -1,7 +1,5 @@
 package org.neighbor21.slakslramsapi.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_ROADWIDTHDTO;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_ROUGH_DISTRIDTO;
@@ -35,58 +33,8 @@ import java.util.stream.Collectors;
 public class SaveAfterDtoToEntity {
     private static final Logger logger = LoggerFactory.getLogger(SaveAfterDtoToEntity.class);
 
-    //배치처리
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    /**
-     * 일괄 삽입을 시도하고, 실패할 경우 재시도하는 메서드.
-     *
-     * @param entities 삽입할 엔티티 리스트
-     */
-    @Transactional
-    public void batchInsertWithRetry(List<?> entities) {
-        //최대 재시도 횟수
-        int maxRetries = 2;
-        //재시도 간의 지연 시간(밀리초)
-        long retryDelay = 500;
-        int batchSize = 50;
-        for (int i = 0; i < entities.size(); i++) {
-            boolean success = false;
-            int retryCount = 0;
-
-            while (!success && retryCount < maxRetries) {
-                try {
-                    entityManager.persist(entities.get(i));
-                    if (i % batchSize == 0 && i > 0) {
-                        entityManager.flush();
-                        entityManager.clear();
-                    }
-                    success = true;  // 성공하면 루프 탈출
-                } catch (Exception e) {
-                    retryCount++;
-                    logger.error("Retry " + retryCount + " for entity at index " + i + " failed: " + e.getMessage());
-                    entityManager.clear();  // 실패 시 entityManager를 clear 하고 다시 시도
-                    if (retryCount < maxRetries) {
-                        try {
-                            Thread.sleep(retryDelay);  // 설정한 지연 시간만큼 대기
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            logger.error("Thread interrupted during retry delay", ie);
-                        }
-                    }
-                }
-            }
-
-            if (!success) {
-                logger.error("Failed to insert entity after " + maxRetries + " retries, at index: " + i);
-                // 여기서 실패 처리 로직을 구현할 수 있습니다
-            }
-        }
-        entityManager.flush();
-        entityManager.clear();
-    }
-
+    @Autowired
+    private BatchService batchService;
 
     //ris 도로너비 정보
     @Transactional
@@ -115,7 +63,7 @@ public class SaveAfterDtoToEntity {
             }).collect(Collectors.toList());
 
             // 배치 삽입 시도
-            batchInsertWithRetry(roadwidthEntitys);
+            batchService.batchInsertWithRetry(roadwidthEntitys);
         } catch (Exception e) {
             // 로그 기록 및 트랜잭션 롤백
             logger.error("Failed to insert TL_RIS_ROADWIDTH entities :" + e.getMessage(), e);
@@ -150,7 +98,7 @@ public class SaveAfterDtoToEntity {
             }).collect(Collectors.toList());
 
             // 배치 삽입 시도
-            batchInsertWithRetry(roughDistriEntitys);
+            batchService.batchInsertWithRetry(roughDistriEntitys);
         } catch (Exception e) {
             // 로그 기록 및 트랜잭션 롤백
             logger.error("Failed to insert TL_RIS_ROUGH_DISTRI entities :" + e.getMessage(), e);
@@ -186,7 +134,7 @@ public class SaveAfterDtoToEntity {
             }).collect(Collectors.toList());
 
             // 배치 삽입 시도
-            batchInsertWithRetry(surfaceEntitys);
+            batchService.batchInsertWithRetry(surfaceEntitys);
         } catch (Exception e) {
             // 로그 기록 및 트랜잭션 롤백
             logger.error("Failed to insert TL_RIS_SURFACE entities :" + e.getMessage(), e);
@@ -223,7 +171,7 @@ public class SaveAfterDtoToEntity {
             }).collect(Collectors.toList());
 
             // 배치 삽입 시도
-            batchInsertWithRetry(aadtEntitys);
+            batchService.batchInsertWithRetry(aadtEntitys);
         } catch (Exception e) {
             // 로그 기록 및 트랜잭션 롤백
             logger.error("Failed to insert TL_TIS_AADT entities :" + e.getMessage(), e);
