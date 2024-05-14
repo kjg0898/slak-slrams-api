@@ -19,7 +19,7 @@ import java.util.function.Supplier;
  * fileName       : BatchService.java
  * author         : kjg08
  * date           : 24. 5. 9.
- * description    : 배치 처리를 위한 서비스
+ * description    : 배치 처리를 위한 서비스 (spring batch 가 아닌 Hibernate Batch Processing)
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------

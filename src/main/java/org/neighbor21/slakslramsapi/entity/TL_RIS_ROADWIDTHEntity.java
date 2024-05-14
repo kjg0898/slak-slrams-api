@@ -24,11 +24,8 @@ import java.sql.Timestamp;
 @Table(name = "TL_RIS_ROADWIDTH")
 public class TL_RIS_ROADWIDTHEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     //링크 코드
+    @Id
     @Column(name = "LINK_CD", length = 50)
     private String linkCode;
     //도로 유형

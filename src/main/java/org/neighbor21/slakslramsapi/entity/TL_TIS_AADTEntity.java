@@ -26,9 +26,6 @@ import java.sql.Timestamp;
 public class TL_TIS_AADTEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "LINK_CD", length = 50)
     private String linkCode;
 
