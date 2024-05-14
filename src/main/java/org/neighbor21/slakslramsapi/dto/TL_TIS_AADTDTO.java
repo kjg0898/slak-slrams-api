@@ -1,5 +1,6 @@
 package org.neighbor21.slakslramsapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,14 +27,19 @@ import java.math.BigInteger;
 public class TL_TIS_AADTDTO {
 
     //링크 코드
+    @JsonProperty("")
     private String linkCode;
     //연평균일 교통량
+    @JsonProperty("")
     private BigInteger averageDailyTraffic;
     //카테고리
+    @JsonProperty("")
     private String category;
     //길이
+    @JsonProperty("")
     private BigDecimal length;
     //설문 년
+    @JsonProperty("")
     private String surveyYear;
     //수집 일시
     //private Timestamp collectionDateTime;
