@@ -27,22 +27,18 @@ import java.math.BigInteger;
 public class TL_TIS_AADTDTO {
 
     //링크 코드
-    @JsonProperty("")
+    @JsonProperty("LinkCode")
     private String linkCode;
     //연평균일 교통량
-    @JsonProperty("")
+    @JsonProperty("AADT")
     private BigInteger averageDailyTraffic;
     //카테고리
-    @JsonProperty("")
+    @JsonProperty("Category")
     private String category;
     //길이
-    @JsonProperty("")
+    @JsonProperty("Length")
     private BigDecimal length;
     //설문 년
-    @JsonProperty("")
+    @JsonProperty("SurveyID")
     private String surveyYear;
-    //수집 일시
-    //private Timestamp collectionDateTime;
-
-
 }

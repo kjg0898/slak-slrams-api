@@ -1,6 +1,5 @@
 package org.neighbor21.slakslramsapi.service;
 
-import jakarta.transaction.Transactional;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_ROADWIDTHDTO;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_ROUGH_DISTRIDTO;
 import org.neighbor21.slakslramsapi.dto.TL_RIS_SURFACEDTO;
@@ -9,310 +8,228 @@ import org.neighbor21.slakslramsapi.entity.TL_RIS_ROADWIDTHEntity;
 import org.neighbor21.slakslramsapi.entity.TL_RIS_ROUGH_DISTRIEntity;
 import org.neighbor21.slakslramsapi.entity.TL_RIS_SURFACEEntity;
 import org.neighbor21.slakslramsapi.entity.TL_TIS_AADTEntity;
+import org.neighbor21.slakslramsapi.jpRepository.TL_RIS_ROADWIDTHReposit;
+import org.neighbor21.slakslramsapi.jpRepository.TL_RIS_ROUGH_DISTRIReposit;
+import org.neighbor21.slakslramsapi.jpRepository.TL_RIS_SURFACEReposit;
+import org.neighbor21.slakslramsapi.jpRepository.TL_TIS_AADTReposit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * packageName    : org.neighbor21.slakslramsapi.service
- * fileName       : SaveAfterDtoToEntity.java
- * author         : kjg08
- * date           : 24. 5. 7.
- * description    : dto 를 조합하여 엔티티를 만들어 db 에 save 하는 로직
- * ===========================================================
- * DATE              AUTHOR             NOTE
- * -----------------------------------------------------------
- * 24. 5. 7.        kjg08           최초 생성
- */
 @Service
 public class SaveAfterDtoToEntity {
     private static final Logger logger = LoggerFactory.getLogger(SaveAfterDtoToEntity.class);
 
     @Autowired
+    private TL_RIS_ROADWIDTHReposit roadwidthReposit;
+    @Autowired
+    private TL_RIS_ROUGH_DISTRIReposit roughDistriReposit;
+    @Autowired
+    private TL_RIS_SURFACEReposit surfaceReposit;
+    @Autowired
+    private TL_TIS_AADTReposit aadtReposit;
+
+    @Autowired
     private BatchService batchService;
 
-    //ris 도로너비 정보
     @Transactional
     public void insertTL_RIS_ROADWIDTH(List<TL_RIS_ROADWIDTHDTO> roadWidths) {
-        try {
-            List<TL_RIS_ROADWIDTHEntity> roadwidthEntities = roadWidths.stream()
-                    .map(this::convertToRoadwidthEntity)
-                    .collect(Collectors.toList());
-
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(roadwidthEntities);
-        } catch (Exception e) {
-            //에러 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_RIS_ROADWIDTH entities: {}", e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
+        processInsert(roadWidths, this::convertToRoadwidthEntity, roadwidthReposit::findMaxSqnoBySurveyYear, this::roadwidthBatchInsert, "insertTL_RIS_ROADWIDTH");
     }
 
-    //ris 거칠기 분포 정보
     @Transactional
     public void insertTL_RIS_ROUGH_DISTRI(List<TL_RIS_ROUGH_DISTRIDTO> roughDistris) {
-        try {
-            List<TL_RIS_ROUGH_DISTRIEntity> roughDistriEntities = roughDistris.stream()
-                    .map(this::convertToRoughDistriEntity)
-                    .collect(Collectors.toList());
-
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(roughDistriEntities);
-        } catch (Exception e) {
-            //에러 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_RIS_ROUGH_DISTRI entities: {}", e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
+        processInsert(roughDistris, this::convertToRoughDistriEntity, roughDistriReposit::findMaxSqnoBySurveyYear, this::roughDistriBatchInsert, "insertTL_RIS_ROUGH_DISTRI");
     }
 
-    //ris 표면 유형 정보
     @Transactional
     public void insertTL_RIS_SURFACE(List<TL_RIS_SURFACEDTO> surfaces) {
-        try {
-            List<TL_RIS_SURFACEEntity> surfaceEntities = surfaces.stream()
-                    .map(this::convertToSurfaceEntity)
-                    .collect(Collectors.toList());
-
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(surfaceEntities);
-        } catch (Exception e) {
-            //에러 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_RIS_SURFACE entities: {}", e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
+        processInsert(surfaces, this::convertToSurfaceEntity, surfaceReposit::findMaxSqnoBySurveyYear, this::surfaceBatchInsert, "insertTL_RIS_SURFACE");
     }
 
-    //tis 교통분산 정보
     @Transactional
     public void insertTL_TIS_AADT(List<TL_TIS_AADTDTO> aadts) {
+        processInsert(aadts, this::convertToAadtEntity, aadtReposit::findMaxSqnoBySurveyYear, this::aadtBatchInsert, "insertTL_TIS_AADT");
+    }
+
+    private <T, E> void processInsert(List<T> dtos, EntityConverter<T, E> converter, MaxSqnoProvider maxSqnoProvider, BatchInserter<E> batchInserter, String processName) {
+        long startTime = System.currentTimeMillis();
         try {
-            List<TL_TIS_AADTEntity> aadtEntities = aadts.stream()
-                    .map(this::convertToAadtEntity)
+            Map<String, Integer> maxSqnoMap = getMaxSqnoMap(maxSqnoProvider.getMaxSqnoBySurveyYear());
+
+            if (maxSqnoMap == null) {
+                throw new RuntimeException("maxSqnoMap is null");
+            }
+
+            List<E> entities = dtos.stream()
+                    .sorted(Comparator.comparing(this::getSurveyYear))
+                    .map(dto -> {
+                        E entity = converter.convert(dto, maxSqnoMap);
+                        if (entity == null) {
+                            logger.warn("Entity conversion resulted in null for DTO: {}", dto);
+                        }
+                        return entity;
+                    })
+                    .filter(Objects::nonNull) // Null 값을 필터링하여 제외
                     .collect(Collectors.toList());
 
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(aadtEntities);
+            if (entities.isEmpty()) {
+                throw new RuntimeException("No entities to insert after conversion");
+            }
+
+            logger.info("Starting batch insert for {} with {} entities", processName, entities.size());
+            batchInserter.batchInsert(entities);
+            long endTime = System.currentTimeMillis();
+            logger.info("{} process completed in {} ms", processName, (endTime - startTime));
         } catch (Exception e) {
-            //에러 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_TIS_AADT entities: {}", e.getMessage(), e);
+            logger.error("Failed to insert entities in {}: {}", processName, e.getMessage(), e);
             throw new RuntimeException("Transaction rolled back due to insertion failure", e);
         }
     }
 
-    private TL_RIS_ROADWIDTHEntity convertToRoadwidthEntity(TL_RIS_ROADWIDTHDTO dto) {
+
+
+    private <T> String getSurveyYear(T dto) {
+        if (dto instanceof TL_RIS_ROADWIDTHDTO) {
+            return ((TL_RIS_ROADWIDTHDTO) dto).getSurveyYear();
+        } else if (dto instanceof TL_RIS_ROUGH_DISTRIDTO) {
+            return ((TL_RIS_ROUGH_DISTRIDTO) dto).getSurveyYear();
+        } else if (dto instanceof TL_RIS_SURFACEDTO) {
+            return ((TL_RIS_SURFACEDTO) dto).getSurveyYear();
+        } else if (dto instanceof TL_TIS_AADTDTO) {
+            return ((TL_TIS_AADTDTO) dto).getSurveyYear();
+        }
+        return null;
+    }
+
+    private TL_RIS_ROADWIDTHEntity convertToRoadwidthEntity(TL_RIS_ROADWIDTHDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_ROADWIDTHEntity entity = new TL_RIS_ROADWIDTHEntity();
-        //링크 코드
         entity.setLinkCode(dto.getLinkCode());
-        //도로 타입
         entity.setRoadType(dto.getRoadType());
-        //너비 분류
         entity.setWidthCategory(dto.getWidthCategory());
-        //길이
         entity.setLength(dto.getLength());
-        //설문 년
         entity.setSurveyYear(dto.getSurveyYear());
-        //수집 일시
         entity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
+        entity.setSqno(maxSqnoMap.compute(dto.getSurveyYear(), (k, v) -> (v == null) ? 1 : v + 1));
         return entity;
     }
 
-    private TL_RIS_ROUGH_DISTRIEntity convertToRoughDistriEntity(TL_RIS_ROUGH_DISTRIDTO dto) {
+    private TL_RIS_ROUGH_DISTRIEntity convertToRoughDistriEntity(TL_RIS_ROUGH_DISTRIDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_ROUGH_DISTRIEntity entity = new TL_RIS_ROUGH_DISTRIEntity();
-        //링크 코드
         entity.setLinkCode(dto.getLinkCode());
-        //분류
         entity.setCategory(dto.getCategory());
-        //길이
         entity.setLength(dto.getLength());
-        //설문 년
         entity.setSurveyYear(dto.getSurveyYear());
-        //수집 일시
         entity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
+        entity.setSqno(maxSqnoMap.compute(dto.getSurveyYear(), (k, v) -> (v == null) ? 1 : v + 1));
         return entity;
     }
 
-    private TL_RIS_SURFACEEntity convertToSurfaceEntity(TL_RIS_SURFACEDTO dto) {
+    private TL_RIS_SURFACEEntity convertToSurfaceEntity(TL_RIS_SURFACEDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_SURFACEEntity entity = new TL_RIS_SURFACEEntity();
-        //링크 코드
         entity.setLinkCode(dto.getLinkCode());
-        //표면 분류
         entity.setSurfaceCategory(dto.getSurfaceCategory());
-        //표면 설명
         entity.setSurfaceDescription(dto.getSurfaceDescription());
-        //길이
         entity.setLength(dto.getLength());
-        //설문 년
         entity.setSurveyYear(dto.getSurveyYear());
-        //수집 일시
         entity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
+        entity.setSqno(maxSqnoMap.compute(dto.getSurveyYear(), (k, v) -> (v == null) ? 1 : v + 1));
         return entity;
     }
 
-    private TL_TIS_AADTEntity convertToAadtEntity(TL_TIS_AADTDTO dto) {
+    private TL_TIS_AADTEntity convertToAadtEntity(TL_TIS_AADTDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_TIS_AADTEntity entity = new TL_TIS_AADTEntity();
-        //링크 코드
         entity.setLinkCode(dto.getLinkCode());
-        //연평균일 교통량
         entity.setAverageDailyTraffic(dto.getAverageDailyTraffic());
-        //카테고리
         entity.setCategory(dto.getCategory());
-        //길이
         entity.setLength(dto.getLength());
-        //설문 년
         entity.setSurveyYear(dto.getSurveyYear());
-        //수집일시
         entity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
+        entity.setSqno(maxSqnoMap.compute(dto.getSurveyYear(), (k, v) -> (v == null) ? 1 : v + 1));
         return entity;
     }
 
-
-
-
-    /*//ris 도로너비 정보
-    @Transactional
-    public void insertTL_RIS_ROADWIDTH(List<TL_RIS_ROADWIDTHDTO> roadWidths) {
-        try {
-            List<TL_RIS_ROADWIDTHEntity> roadwidthEntitys = roadWidths.stream().map(roadWidth -> {
-                // 데이터 유효성 검사
-                if (roadWidth.getLinkCode() == null || roadWidth.getRoadType() == null) {
-                    throw new IllegalArgumentException("Link Code and Road Type must not be null");
-                }
-                TL_RIS_ROADWIDTHEntity roadwidthEntity = new TL_RIS_ROADWIDTHEntity();
-                //링크 코드
-                roadwidthEntity.setLinkCode(roadWidth.getLinkCode());
-                //도로 타입
-                roadwidthEntity.setRoadType(roadWidth.getRoadType());
-                //너비 분류
-                roadwidthEntity.setWidthCategory(roadWidth.getWidthCategory());
-                //길이
-                roadwidthEntity.setLength(roadWidth.getLength());
-                //설문 년
-                roadwidthEntity.setSurveyYear(roadWidth.getSurveyYear());
-                //수집 일시
-                roadwidthEntity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
-
-                return roadwidthEntity;
-            }).collect(Collectors.toList());
-
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(roadwidthEntitys);
-        } catch (Exception e) {
-            // 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_RIS_ROADWIDTH entities :" + e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
+    private Map<String, Integer> getMaxSqnoMap(List<Object[]> results) {
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (String) result[0],
+                        result -> (Integer) result[1]
+                ));
     }
 
-
-    //ris 거칠기 분포 정보
-    @Transactional
-    public void insertTL_RIS_ROUGH_DISTRI(List<TL_RIS_ROUGH_DISTRIDTO> roughDistris) {
-        try {
-            List<TL_RIS_ROUGH_DISTRIEntity> roughDistriEntitys = roughDistris.stream().map(roughDistri -> {
-                // 데이터 유효성 검사
-                if (roughDistri.getLinkCode() == null || roughDistri.getCategory() == null) {
-                    throw new IllegalArgumentException("Link Code and Category must not be null");
-                }
-                TL_RIS_ROUGH_DISTRIEntity roughDistriEntity = new TL_RIS_ROUGH_DISTRIEntity();
-
-                //링크 코드
-                roughDistriEntity.setLinkCode(roughDistri.getLinkCode());
-                //분류
-                roughDistriEntity.setCategory(roughDistri.getCategory());
-                //길이
-                roughDistriEntity.setLength(roughDistri.getLength());
-                //설문 년
-                roughDistriEntity.setSurveyYear(roughDistri.getSurveyYear());
-                //수집 일시
-                roughDistriEntity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
-
-                return roughDistriEntity;
-            }).collect(Collectors.toList());
-
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(roughDistriEntitys);
-        } catch (Exception e) {
-            // 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_RIS_ROUGH_DISTRI entities :" + e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
+    private void roadwidthBatchInsert(List<TL_RIS_ROADWIDTHEntity> entities) {
+        String sql = "INSERT INTO srlk.TL_RIS_ROADWIDTH (LINK_CD, ROAD_TYPE, WIDTH_CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
+            ps.setString(1, entity.getLinkCode());
+            ps.setString(2, entity.getRoadType());
+            ps.setString(3, entity.getWidthCategory());
+            ps.setBigDecimal(4, entity.getLength());
+            ps.setString(5, entity.getSurveyYear());
+            ps.setTimestamp(6, entity.getCollectionDateTime());
+            ps.setInt(7, entity.getSqno());
+        });
     }
 
-    //ris 표면 유형 정보
-    @Transactional
-    public void insertTL_RIS_SURFACE(List<TL_RIS_SURFACEDTO> surfaces) {
-        try {
-            List<TL_RIS_SURFACEEntity> surfaceEntitys = surfaces.stream().map(surface -> {
-                // 데이터 유효성 검사
-                if (surface.getLinkCode() == null || surface.getSurfaceCategory() == null) {
-                    throw new IllegalArgumentException("Link Code and Surface Category must not be null");
-                }
-                TL_RIS_SURFACEEntity surfaceEntity = new TL_RIS_SURFACEEntity();
-
-                //링크 코드
-                surfaceEntity.setLinkCode(surface.getLinkCode());
-                //표면 분류
-                surfaceEntity.setSurfaceCategory(surface.getSurfaceCategory());
-                //표면 설명
-                surfaceEntity.setSurfaceDescription(surface.getSurfaceDescription());
-                //길이
-                surfaceEntity.setLength(surface.getLength());
-                //설문 년
-                surfaceEntity.setSurveyYear(surface.getSurveyYear());
-                //수집 일시
-                surfaceEntity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
-
-                return surfaceEntity;
-            }).collect(Collectors.toList());
-
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(surfaceEntitys);
-        } catch (Exception e) {
-            // 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_RIS_SURFACE entities :" + e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
+    private void roughDistriBatchInsert(List<TL_RIS_ROUGH_DISTRIEntity> entities) {
+        String sql = "INSERT INTO srlk.TL_RIS_ROUGH_DISTRI (LINK_CD, CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?)";
+        batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
+            ps.setString(1, entity.getLinkCode());
+            ps.setString(2, entity.getCategory());
+            ps.setBigDecimal(3, entity.getLength());
+            ps.setString(4, entity.getSurveyYear());
+            ps.setTimestamp(5, entity.getCollectionDateTime());
+            ps.setInt(6, entity.getSqno());
+        });
     }
 
+    private void surfaceBatchInsert(List<TL_RIS_SURFACEEntity> entities) {
+        String sql = "INSERT INTO srlk.TL_RIS_SURFACE (LINK_CD, SURF_CLSF, SURF_DESCR, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
+            ps.setString(1, entity.getLinkCode());
+            ps.setString(2, entity.getSurfaceCategory());
+            ps.setString(3, entity.getSurfaceDescription());
+            ps.setBigDecimal(4, entity.getLength());
+            ps.setString(5, entity.getSurveyYear());
+            ps.setTimestamp(6, entity.getCollectionDateTime());
+            ps.setInt(7, entity.getSqno());
+        });
+    }
 
-    //tis 교통분산 정보
-    @Transactional
-    public void insertTL_TIS_AADT(List<TL_TIS_AADTDTO> aadts) {
-        try {
-            List<TL_TIS_AADTEntity> aadtEntitys = aadts.stream().map(aadt -> {
-                // 데이터 유효성 검사
-                if (aadt.getLinkCode() == null || aadt.getCategory() == null) {
-                    throw new IllegalArgumentException("Link Code and Category must not be null");
-                }
-                TL_TIS_AADTEntity aadtEntity = new TL_TIS_AADTEntity();
+    private void aadtBatchInsert(List<TL_TIS_AADTEntity> entities) {
+        String sql = "INSERT INTO srlk.TL_TIS_AADT (LINK_CD, AAD_TRFVLM, CATEG, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
+            ps.setString(1, entity.getLinkCode());
+            ps.setBigDecimal(2, new BigDecimal(entity.getAverageDailyTraffic())); // BigInteger to BigDecimal
+            ps.setString(3, entity.getCategory());
+            ps.setBigDecimal(4, entity.getLength());
+            ps.setString(5, entity.getSurveyYear());
+            ps.setTimestamp(6, entity.getCollectionDateTime());
+            ps.setInt(7, entity.getSqno());
+        });
+    }
 
-                //링크 코드
-                aadtEntity.setLinkCode(aadt.getLinkCode());
-                //연평균일 교통량
-                aadtEntity.setAverageDailyTraffic(aadt.getAverageDailyTraffic());
-                //카테고리
-                aadtEntity.setCategory(aadt.getCategory());
-                //길이
-                aadtEntity.setLength(aadt.getLength());
-                //설문 년
-                aadtEntity.setSurveyYear(aadt.getSurveyYear());
-                //수집일시
-                aadtEntity.setCollectionDateTime(new Timestamp(System.currentTimeMillis()));
+    @FunctionalInterface
+    public interface EntityConverter<T, E> {
+        E convert(T dto, Map<String, Integer> maxSqnoMap);
+    }
 
-                return aadtEntity;
-            }).collect(Collectors.toList());
+    @FunctionalInterface
+    public interface MaxSqnoProvider {
+        List<Object[]> getMaxSqnoBySurveyYear();
+    }
 
-            // 배치 삽입 시도
-            batchService.batchInsertWithRetry(aadtEntitys);
-        } catch (Exception e) {
-            // 로그 기록 및 트랜잭션 롤백
-            logger.error("Failed to insert TL_TIS_AADT entities :" + e.getMessage(), e);
-            throw new RuntimeException("Transaction rolled back due to insertion failure", e);
-        }
-    }*/
+    @FunctionalInterface
+    public interface BatchInserter<E> {
+        void batchInsert(List<E> entities);
+    }
 }

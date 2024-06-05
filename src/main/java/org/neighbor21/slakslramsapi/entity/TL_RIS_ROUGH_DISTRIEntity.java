@@ -1,6 +1,9 @@
 package org.neighbor21.slakslramsapi.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,7 +24,7 @@ import java.sql.Timestamp;
 @Entity
 @Getter
 @Setter
-@Table(name = "TL_RIS_ROUGH_DISTRI")
+@Table(name = "TL_RIS_ROUGH_DISTRI", schema = "srlk")
 public class TL_RIS_ROUGH_DISTRIEntity {
 
     //링크 코드
@@ -41,5 +44,6 @@ public class TL_RIS_ROUGH_DISTRIEntity {
     @Column(name = "CLCT_DT")
     private Timestamp collectionDateTime;
 
-
+    @Column(name = "SQNO")
+    private int sqno; // 순번 추가
 }

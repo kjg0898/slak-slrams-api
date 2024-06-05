@@ -1,6 +1,9 @@
 package org.neighbor21.slakslramsapi.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +25,7 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Entity
-@Table(name = "TL_TIS_AADT")
+@Table(name = "TL_TIS_AADT", schema = "srlk")
 public class TL_TIS_AADTEntity {
 
     @Id
@@ -44,5 +47,6 @@ public class TL_TIS_AADTEntity {
     @Column(name = "CLCT_DT")
     private Timestamp collectionDateTime;
 
-
+    @Column(name = "SQNO")
+    private int sqno; // 순번 추가
 }

@@ -26,21 +26,19 @@ import java.math.BigDecimal;
 public class TL_RIS_ROADWIDTHDTO {
 
     //링크 코드
-    @JsonProperty("")
+    @JsonProperty("LinkCode")
     private String linkCode;
     //도로 타입
-    @JsonProperty("")
+    @JsonProperty("RoadType")
     private String roadType;
     //너비 분류
-    @JsonProperty("")
+    @JsonProperty("WidthClass")
     private String widthCategory;
     //길이
-    @JsonProperty("")
+    @JsonProperty("Length")
     private BigDecimal length;
     //설문 년
-    @JsonProperty("")
+    @JsonProperty("SurveyID")
     private String surveyYear;
-    //수집 일시
-    //private Timestamp collectionDateTime;
 
 }
