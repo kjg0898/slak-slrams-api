@@ -98,7 +98,6 @@ public class SaveAfterDtoToEntity {
     }
 
 
-
     private <T> String getSurveyYear(T dto) {
         if (dto instanceof TL_RIS_ROADWIDTHDTO) {
             return ((TL_RIS_ROADWIDTHDTO) dto).getSurveyYear();
