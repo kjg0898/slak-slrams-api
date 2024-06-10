@@ -42,27 +42,30 @@ public class SaveAfterDtoToEntity {
     @Autowired
     private BatchService batchService;
 
+    @Autowired
+    private CollectionDateTimeService collectionDateTimeService;
+
     @Transactional
     public void insertTL_RIS_ROADWIDTH(List<TL_RIS_ROADWIDTHDTO> roadWidths) {
-        processInsert(roadWidths, this::convertToRoadwidthEntity, roadwidthReposit::findMaxSqnoBySurveyYear, this::roadwidthBatchInsert, "insertTL_RIS_ROADWIDTH");
+        processInsert(roadWidths, this::convertToRoadwidthEntity, roadwidthReposit::findMaxSqnoBySurveyYear, this::roadwidthBatchInsert, "insertTL_RIS_ROADWIDTH", "roadwidth");
     }
 
     @Transactional
     public void insertTL_RIS_ROUGH_DISTRI(List<TL_RIS_ROUGH_DISTRIDTO> roughDistris) {
-        processInsert(roughDistris, this::convertToRoughDistriEntity, roughDistriReposit::findMaxSqnoBySurveyYear, this::roughDistriBatchInsert, "insertTL_RIS_ROUGH_DISTRI");
+        processInsert(roughDistris, this::convertToRoughDistriEntity, roughDistriReposit::findMaxSqnoBySurveyYear, this::roughDistriBatchInsert, "insertTL_RIS_ROUGH_DISTRI", "roughDistri");
     }
 
     @Transactional
     public void insertTL_RIS_SURFACE(List<TL_RIS_SURFACEDTO> surfaces) {
-        processInsert(surfaces, this::convertToSurfaceEntity, surfaceReposit::findMaxSqnoBySurveyYear, this::surfaceBatchInsert, "insertTL_RIS_SURFACE");
+        processInsert(surfaces, this::convertToSurfaceEntity, surfaceReposit::findMaxSqnoBySurveyYear, this::surfaceBatchInsert, "insertTL_RIS_SURFACE", "surface");
     }
 
     @Transactional
     public void insertTL_TIS_AADT(List<TL_TIS_AADTDTO> aadts) {
-        processInsert(aadts, this::convertToAadtEntity, aadtReposit::findMaxSqnoBySurveyYear, this::aadtBatchInsert, "insertTL_TIS_AADT");
+        processInsert(aadts, this::convertToAadtEntity, aadtReposit::findMaxSqnoBySurveyYear, this::aadtBatchInsert, "insertTL_TIS_AADT", "aadt");
     }
 
-    private <T, E> void processInsert(List<T> dtos, EntityConverter<T, E> converter, MaxSqnoProvider maxSqnoProvider, BatchInserter<E> batchInserter, String processName) {
+    private <T, E> void processInsert(List<T> dtos, EntityConverter<T, E> converter, MaxSqnoProvider maxSqnoProvider, BatchInserter<E> batchInserter, String processName, String timestampKey) {
         long startTime = System.currentTimeMillis();
         try {
             Map<String, Integer> maxSqnoMap = getMaxSqnoMap(maxSqnoProvider.getMaxSqnoBySurveyYear());
@@ -89,6 +92,11 @@ public class SaveAfterDtoToEntity {
 
             logger.info("Starting batch insert for {} with {} entities", processName, entities.size());
             batchInserter.batchInsert(entities);
+
+            // 인서트 성공 시 최신 타임스탬프 업데이트
+            Timestamp latestTimestamp = new Timestamp(System.currentTimeMillis());
+            collectionDateTimeService.updateTimestampIfNeeded(timestampKey, latestTimestamp);
+
             long endTime = System.currentTimeMillis();
             logger.info("{} process completed in {} ms", processName, (endTime - startTime));
         } catch (Exception e) {
@@ -96,7 +104,6 @@ public class SaveAfterDtoToEntity {
             throw new RuntimeException("Transaction rolled back due to insertion failure", e);
         }
     }
-
 
     private <T> String getSurveyYear(T dto) {
         if (dto instanceof TL_RIS_ROADWIDTHDTO) {
