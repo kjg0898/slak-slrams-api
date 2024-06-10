@@ -12,6 +12,17 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * packageName    : org.neighbor21.slakslramsapi.service
+ * fileName       : BatchService.java
+ * author         : kjg08
+ * date           : 24. 5. 2.
+ * description    : 배치 처리를 위한 서비스 클래스
+ * ===========================================================
+ * DATE              AUTHOR             NOTE
+ * -----------------------------------------------------------
+ * 24. 5. 2.        kjg08           최초 생성
+ */
 @Service
 public class BatchService {
     private static final Logger logger = LoggerFactory.getLogger(BatchService.class);
@@ -19,6 +30,14 @@ public class BatchService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /**
+     * 엔티티 리스트를 배치 삽입합니다.
+     *
+     * @param entities 삽입할 엔티티 리스트
+     * @param sqls     삽입할 SQL 문
+     * @param setter   PreparedStatement 설정을 위한 BatchPreparedStatementSetter
+     * @param <T>      엔티티 타입
+     */
     @Transactional
     public <T> void batchInsertWithRetry(List<T> entities, String sqls, BatchPreparedStatementSetter<T> setter) {
         int batchSize = Constants.DEFAULT_BATCH_SIZE;
@@ -48,7 +67,6 @@ public class BatchService {
             }
         }
     }
-
 
     @FunctionalInterface
     public interface BatchPreparedStatementSetter<T> {

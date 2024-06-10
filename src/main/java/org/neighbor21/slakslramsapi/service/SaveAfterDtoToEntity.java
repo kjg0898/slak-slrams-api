@@ -26,6 +26,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * packageName    : org.neighbor21.slakslramsapi.service
+ * fileName       : SaveAfterDtoToEntity.java
+ * author         : kjg08
+ * date           : 24. 5. 2.
+ * description    : DTO를 엔티티로 변환하여 데이터베이스에 저장하는 서비스 클래스
+ * ===========================================================
+ * DATE              AUTHOR             NOTE
+ * -----------------------------------------------------------
+ * 24. 5. 2.        kjg08           최초 생성
+ */
 @Service
 public class SaveAfterDtoToEntity {
     private static final Logger logger = LoggerFactory.getLogger(SaveAfterDtoToEntity.class);
@@ -45,28 +56,57 @@ public class SaveAfterDtoToEntity {
     @Autowired
     private CollectionDateTimeService collectionDateTimeService;
 
+    /**
+     * 도로 너비 데이터를 저장하는 메서드
+     *
+     * @param roadWidths 도로 너비 DTO 리스트
+     */
     @Transactional
     public void insertTL_RIS_ROADWIDTH(List<TL_RIS_ROADWIDTHDTO> roadWidths) {
         processInsert(roadWidths, this::convertToRoadwidthEntity, roadwidthReposit::findMaxSqnoBySurveyYear, this::roadwidthBatchInsert, "insertTL_RIS_ROADWIDTH", "roadwidth");
     }
 
+    /**
+     * 거칠기 분포 데이터를 저장하는 메서드
+     *
+     * @param roughDistris 거칠기 분포 DTO 리스트
+     */
     @Transactional
     public void insertTL_RIS_ROUGH_DISTRI(List<TL_RIS_ROUGH_DISTRIDTO> roughDistris) {
         processInsert(roughDistris, this::convertToRoughDistriEntity, roughDistriReposit::findMaxSqnoBySurveyYear, this::roughDistriBatchInsert, "insertTL_RIS_ROUGH_DISTRI", "roughDistri");
     }
 
+    /**
+     * 표면 데이터를 저장하는 메서드
+     *
+     * @param surfaces 표면 DTO 리스트
+     */
     @Transactional
     public void insertTL_RIS_SURFACE(List<TL_RIS_SURFACEDTO> surfaces) {
         processInsert(surfaces, this::convertToSurfaceEntity, surfaceReposit::findMaxSqnoBySurveyYear, this::surfaceBatchInsert, "insertTL_RIS_SURFACE", "surface");
     }
 
+    /**
+     * 교통 분산 데이터를 저장하는 메서드
+     *
+     * @param aadts 교통 분산 DTO 리스트
+     */
     @Transactional
     public void insertTL_TIS_AADT(List<TL_TIS_AADTDTO> aadts) {
         processInsert(aadts, this::convertToAadtEntity, aadtReposit::findMaxSqnoBySurveyYear, this::aadtBatchInsert, "insertTL_TIS_AADT", "aadt");
     }
 
+    /**
+     * 공통 처리 로직
+     *
+     * @param dtos            DTO 리스트
+     * @param converter       엔티티 변환 함수
+     * @param maxSqnoProvider 최대 순번 제공 함수
+     * @param batchInserter   배치 삽입 함수
+     * @param processName     프로세스 이름
+     * @param timestampKey    타임스탬프 키
+     */
     private <T, E> void processInsert(List<T> dtos, EntityConverter<T, E> converter, MaxSqnoProvider maxSqnoProvider, BatchInserter<E> batchInserter, String processName, String timestampKey) {
-        long startTime = System.currentTimeMillis();
         try {
             Map<String, Integer> maxSqnoMap = getMaxSqnoMap(maxSqnoProvider.getMaxSqnoBySurveyYear());
 
@@ -97,14 +137,19 @@ public class SaveAfterDtoToEntity {
             Timestamp latestTimestamp = new Timestamp(System.currentTimeMillis());
             collectionDateTimeService.updateTimestampIfNeeded(timestampKey, latestTimestamp);
 
-            long endTime = System.currentTimeMillis();
-            logger.info("{} process completed in {} ms", processName, (endTime - startTime));
+            logger.info("{} process completed ", processName);
         } catch (Exception e) {
             logger.error("Failed to insert entities in {}: {}", processName, e.getMessage(), e);
             throw new RuntimeException("Transaction rolled back due to insertion failure", e);
         }
     }
 
+    /**
+     * DTO에서 설문 연도를 추출하는 메서드
+     *
+     * @param dto DTO 객체
+     * @return 설문 연도
+     */
     private <T> String getSurveyYear(T dto) {
         if (dto instanceof TL_RIS_ROADWIDTHDTO) {
             return ((TL_RIS_ROADWIDTHDTO) dto).getSurveyYear();
@@ -118,6 +163,13 @@ public class SaveAfterDtoToEntity {
         return null;
     }
 
+    /**
+     * 도로 너비 DTO를 엔티티로 변환하는 메서드
+     *
+     * @param dto        도로 너비 DTO
+     * @param maxSqnoMap 최대 순번 맵
+     * @return 도로 너비 엔티티
+     */
     private TL_RIS_ROADWIDTHEntity convertToRoadwidthEntity(TL_RIS_ROADWIDTHDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_ROADWIDTHEntity entity = new TL_RIS_ROADWIDTHEntity();
         entity.setLinkCode(dto.getLinkCode());
@@ -130,6 +182,13 @@ public class SaveAfterDtoToEntity {
         return entity;
     }
 
+    /**
+     * 거칠기 분포 DTO를 엔티티로 변환하는 메서드
+     *
+     * @param dto        거칠기 분포 DTO
+     * @param maxSqnoMap 최대 순번 맵
+     * @return 거칠기 분포 엔티티
+     */
     private TL_RIS_ROUGH_DISTRIEntity convertToRoughDistriEntity(TL_RIS_ROUGH_DISTRIDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_ROUGH_DISTRIEntity entity = new TL_RIS_ROUGH_DISTRIEntity();
         entity.setLinkCode(dto.getLinkCode());
@@ -141,6 +200,13 @@ public class SaveAfterDtoToEntity {
         return entity;
     }
 
+    /**
+     * 표면 DTO를 엔티티로 변환하는 메서드
+     *
+     * @param dto        표면 DTO
+     * @param maxSqnoMap 최대 순번 맵
+     * @return 표면 엔티티
+     */
     private TL_RIS_SURFACEEntity convertToSurfaceEntity(TL_RIS_SURFACEDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_SURFACEEntity entity = new TL_RIS_SURFACEEntity();
         entity.setLinkCode(dto.getLinkCode());
@@ -153,6 +219,13 @@ public class SaveAfterDtoToEntity {
         return entity;
     }
 
+    /**
+     * 교통 분산 DTO를 엔티티로 변환하는 메서드
+     *
+     * @param dto        교통 분산 DTO
+     * @param maxSqnoMap 최대 순번 맵
+     * @return 교통 분산 엔티티
+     */
     private TL_TIS_AADTEntity convertToAadtEntity(TL_TIS_AADTDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_TIS_AADTEntity entity = new TL_TIS_AADTEntity();
         entity.setLinkCode(dto.getLinkCode());
@@ -165,6 +238,12 @@ public class SaveAfterDtoToEntity {
         return entity;
     }
 
+    /**
+     * 최대 순번 맵을 가져오는 메서드
+     *
+     * @param results 쿼리 결과 리스트
+     * @return 최대 순번 맵
+     */
     private Map<String, Integer> getMaxSqnoMap(List<Object[]> results) {
         return results.stream()
                 .collect(Collectors.toMap(
@@ -173,6 +252,11 @@ public class SaveAfterDtoToEntity {
                 ));
     }
 
+    /**
+     * 도로 너비 데이터를 배치 삽입하는 메서드
+     *
+     * @param entities 도로 너비 엔티티 리스트
+     */
     private void roadwidthBatchInsert(List<TL_RIS_ROADWIDTHEntity> entities) {
         String sql = "INSERT INTO srlk.TL_RIS_ROADWIDTH (LINK_CD, ROAD_TYPE, WIDTH_CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
         batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
@@ -186,6 +270,11 @@ public class SaveAfterDtoToEntity {
         });
     }
 
+    /**
+     * 거칠기 분포 데이터를 배치 삽입하는 메서드
+     *
+     * @param entities 거칠기 분포 엔티티 리스트
+     */
     private void roughDistriBatchInsert(List<TL_RIS_ROUGH_DISTRIEntity> entities) {
         String sql = "INSERT INTO srlk.TL_RIS_ROUGH_DISTRI (LINK_CD, CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?)";
         batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
@@ -198,6 +287,11 @@ public class SaveAfterDtoToEntity {
         });
     }
 
+    /**
+     * 표면 데이터를 배치 삽입하는 메서드
+     *
+     * @param entities 표면 엔티티 리스트
+     */
     private void surfaceBatchInsert(List<TL_RIS_SURFACEEntity> entities) {
         String sql = "INSERT INTO srlk.TL_RIS_SURFACE (LINK_CD, SURF_CLSF, SURF_DESCR, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
         batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {
@@ -211,6 +305,11 @@ public class SaveAfterDtoToEntity {
         });
     }
 
+    /**
+     * 교통 분산 데이터를 배치 삽입하는 메서드
+     *
+     * @param entities 교통 분산 엔티티 리스트
+     */
     private void aadtBatchInsert(List<TL_TIS_AADTEntity> entities) {
         String sql = "INSERT INTO srlk.TL_TIS_AADT (LINK_CD, AAD_TRFVLM, CATEG, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
         batchService.batchInsertWithRetry(entities, sql, (ps, entity) -> {

@@ -1,6 +1,7 @@
 package org.neighbor21.slakslramsapi.jpRepository;
 
-import org.neighbor21.slakslramsapi.entity.TL_RIS_ROUGH_DISTRIEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -9,12 +10,24 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * packageName    : org.neighbor21.slakslramsapi.jpRepository
+ * fileName       : TL_RIS_ROUGH_DISTRIReposit.java
+ * author         : kjg08
+ * date           : 24. 5. 2.
+ * description    : TL_RIS_ROUGH_DISTRI 엔티티의 데이터베이스 작업을 처리하는 클래스
+ * ===========================================================
+ * DATE              AUTHOR             NOTE
+ * -----------------------------------------------------------
+ * 24. 5. 2.        kjg08           최초 생성
+ */
 @Repository
 public class TL_RIS_ROUGH_DISTRIReposit {
 
+    private static final Logger logger = LoggerFactory.getLogger(TL_RIS_ROUGH_DISTRIReposit.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
 
     /**
      * 연도별 최대 SQNO 조회
@@ -22,8 +35,13 @@ public class TL_RIS_ROUGH_DISTRIReposit {
      * @return 연도별 최대 SQNO 리스트
      */
     public List<Object[]> findMaxSqnoBySurveyYear() {
-        String sql = "SELECT SRVY_YY, MAX(SQNO) FROM srlk.TL_RIS_ROUGH_DISTRI GROUP BY SRVY_YY";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{rs.getString(1), rs.getInt(2)});
+        try {
+            String sql = "SELECT SRVY_YY, MAX(SQNO) FROM srlk.TL_RIS_ROUGH_DISTRI GROUP BY SRVY_YY";
+            return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{rs.getString(1), rs.getInt(2)});
+        } catch (Exception e) {
+            logger.error("Error querying max SQNO by survey year: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to query max SQNO by survey year", e);
+        }
     }
 
     /**
@@ -32,30 +50,19 @@ public class TL_RIS_ROUGH_DISTRIReposit {
      * @return 가장 최근 수집 일시
      */
     public Optional<Timestamp> findTopByOrderByCollectionDateTimeDesc() {
-        String sql = "SELECT CLCT_DT FROM srlk.TL_RIS_ROUGH_DISTRI ORDER BY CLCT_DT DESC LIMIT 1";
-        return jdbcTemplate.query(sql, (rs) -> {
-            if (rs.next()) {
-                return Optional.of(rs.getTimestamp("CLCT_DT"));
-            } else {
-                return Optional.empty();
-            }
-        });
+        try {
+            String sql = "SELECT CLCT_DT FROM srlk.TL_RIS_ROUGH_DISTRI ORDER BY CLCT_DT DESC LIMIT 1";
+            return jdbcTemplate.query(sql, (rs) -> {
+                if (rs.next()) {
+                    return Optional.of(rs.getTimestamp("CLCT_DT"));
+                } else {
+                    return Optional.empty();
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error querying top collection datetime: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to query top collection datetime", e);
+        }
     }
 
-    /**
-     * 엔티티 배치 삽입
-     *
-     * @param entities 삽입할 엔티티 리스트
-     */
-    public void batchInsert(List<TL_RIS_ROUGH_DISTRIEntity> entities) {
-        String sql = "INSERT INTO srlk.TL_RIS_ROUGH_DISTRI (LINK_CD, CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.batchUpdate(sql, entities, entities.size(), (ps, entity) -> {
-            ps.setString(1, entity.getLinkCode());
-            ps.setString(2, entity.getCategory());
-            ps.setBigDecimal(3, entity.getLength());
-            ps.setString(4, entity.getSurveyYear());
-            ps.setTimestamp(5, entity.getCollectionDateTime());
-            ps.setInt(6, entity.getSqno());
-        });
-    }
 }

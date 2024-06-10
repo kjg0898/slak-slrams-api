@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * fileName       : UnirestConfig.java
  * author         : kjg08
  * date           : 24. 5. 10.
- * description    : Unirest Configuration 분리
+ * description    : Unirest Configuration
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
