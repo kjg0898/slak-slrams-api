@@ -1,7 +1,7 @@
 # SLAK SLRAMS API 프로젝트 문서
 
 ## 소개
-SLAK SLRAMS API 프로젝트는 도로 인프라 데이터를 처리하기 위해 Spring Boot를 기반으로 한 애플리케이션입니다. 이 애플리케이션은 정기적으로 외부 API를 호출하여 데이터를 가져오고, 이를 처리하여 PostgreSQL 데이터베이스에 저장합니다. 이 문서는 프로젝트의 아키텍처, 주요 구성 요소 및 사용된 기술에 대한 상세한 개요를 제공합니다. 기술적 및 비기술적 독자 모두 이해할 수 있도록 설계되었으며, 프로젝트의 작업 흐름과 설계 선택의 이유를 명확히 설명합니다.
+SLAK SLRAMS API 프로젝트는 도로 인프라 데이터를 처리하기 위해 Spring Boot를 기반으로 한 애플리케이션입니다. 이 애플리케이션은 정기적으로 외부 API를 호출하여 데이터를 가져오고, 이를 처리하여 PostgreSQL 데이터베이스에 저장합니다. 이 문서는 프로젝트의 아키텍처, 주요 구성 요소 및 사용된 기술에 대한 상세한 개요를 제공합니다.
 
 ## 프로젝트 구조
 프로젝트는 각기 다른 목적을 가진 여러 패키지로 구성되어 있습니다:
@@ -33,20 +33,16 @@ SLAK SLRAMS API 프로젝트는 도로 인프라 데이터를 처리하기 위�
 Unirest HTTP 클라이언트를 타임아웃 설정과 함께 구성합니다.
 
 ### 데이터 전송 객체 (DTO)
-DTO는 계층 간 데이터 전송을 위해 사용됩니다. 이들은 JSON 직렬화 및 역직렬화를 위한 어노테이션이 포함된 단순 POJO입니다.
+DTO는 계층 간 데이터 전송을 위해 사용됩니다.  JSON 직렬화 및 역직렬화를 위한 어노테이션이 포함된 단순 POJO입니다.
 
-#### 도로 너비 DTO
-도로 너비 데이터를 나타냅니다.
-
-다른 DTO (RISRoughnessDTO, RISSurfaceTypeDTO, TISTrafficDispersionDTO)도 유사한 패턴을 따릅니다.
+#### RISRoughnessDTO, RISSurfaceTypeDTO, TISTrafficDispersionDTO, 도로 너비 DTO
+ 데이터를 나타냅니다.
 
 ### 엔티티
 엔티티는 데이터베이스 테이블을 나타내며 JPA 어노테이션을 사용해 매핑됩니다.
 
-#### 도로 너비 엔티티
-TL_RIS_ROADWIDTH 테이블을 나타냅니다.
-
-다른 엔티티 (TL_RIS_ROUGH_DISTRIEntity, TL_RIS_SURFACEEntity, TL_TIS_AADTEntity)도 유사합니다.
+#### TL_RIS_ROUGH_DISTRIEntity, TL_RIS_SURFACEEntity, TL_TIS_AADTEntity,도로 너비 엔티티
+ 테이블을 나타냅니다.
 
 ### 정기 작업 핸들러
 Spring의 `@Scheduled` 어노테이션을 사용하여 주기적인 API 호출과 데이터 처리를 담당합니다.
@@ -57,10 +53,8 @@ Spring의 `@Scheduled` 어노테이션을 사용하여 주기적인 API 호출�
 ### 리포지토리
 리포지토리는 Spring Data JPA와 JdbcTemplate을 사용하여 데이터베이스 작업을 처리합니다.
 
-#### 도로 너비 리포지토리
+#### 리포지토리
 최대 순번 및 최근 수집 일시를 조회하는 메서드를 포함합니다.
-
-다른 리포지토리 (TL_RIS_ROUGH_DISTRIReposit, TL_RIS_SURFACEReposit, TL_TIS_AADTReposit)도 유사한 패턴을 따릅니다.
 
 ### 서비스 레이어
 #### 배치 서비스
@@ -84,6 +78,3 @@ API 호출을 처리하고 임의의 테스트 데이터를 생성하는 메서�
 
 ### 메인 애플리케이션
 Spring Boot 애플리케이션을 초기화하고 스케줄링을 활성화합니다.
-
-## 결론
-이 문서는 SLAK SLRAMS API 프로젝트의 전반적인 개요를 제공하며, 아키텍처, 주요 구성 요소 및 사용된 기술을 설명합니다. 이 문서를 통해 기술적 및 비기술적 독자는 프로젝트의 작업 흐름과 설계 선택의 이유를 이해할 수 있으며, 필요에 따라 프로젝트를 확장하거나 수정할 수 있습니다.
