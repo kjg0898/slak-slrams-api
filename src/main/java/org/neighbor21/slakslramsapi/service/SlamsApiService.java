@@ -295,6 +295,7 @@ public class SlamsApiService {
 //     * @return 응답 데이터 리스트
 //     * @throws UnirestException 예외 발생 시 던져짐
 //     */
+//     @Retryable(value = {UnirestException.class}, maxAttempts = 2)
 //    private <T> List<T> fetchApiData(String url, String timestampKey, TypeReference<List<T>> typeReference) throws UnirestException {
 //        try {
 //            // 가장 최신의 수집 일시를 파일에서 조회
