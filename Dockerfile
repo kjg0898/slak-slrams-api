@@ -17,8 +17,6 @@ COPY src/main/resources/application-test.properties .
 COPY src/main/resources/application-prod.properties .
 COPY src/main/resources/logback.xml .
 
-# Set the active profile to 'docker' by default for Docker container
-ENV SPRING_PROFILES_ACTIVE=docker
 
 # Run the application when the container launches
-ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar app.jar"]
