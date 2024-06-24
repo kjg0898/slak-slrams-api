@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+// * JdbcTemplate
+// * Spring 프레임워크에서 제공하는 유틸리티 클래스로, JDBC 작업을 간소화.
 
 @Service
 public class BatchService {

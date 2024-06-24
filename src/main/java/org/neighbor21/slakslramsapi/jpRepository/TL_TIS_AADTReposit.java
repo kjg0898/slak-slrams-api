@@ -16,6 +16,8 @@ import java.util.Optional;
  * author         : kjg08
  * date           : 24. 5. 2.
  * description    : TL_TIS_AADT 엔티티의 데이터베이스 작업을 처리하는 클래스
+ *  * JdbcTemplate
+ *  * Spring 프레임워크에서 제공하는 유틸리티 클래스로, JDBC 작업을 간소화.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
