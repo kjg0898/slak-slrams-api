@@ -1,0 +1,18 @@
+
+
+services:
+  app:
+    image: 211.189.132.16:5000/srlk/neighbor/srlk-slrams-api:0.1
+    container_name: srlk-slrams-api
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    ports:
+      - "18092:18092"
+    volumes:
+      - /data/srlk_logs/srlk-slrams-api-logs/:/was/slrams
+    logging:
+      driver: json-file
+      options:
+        max-size: "500m"
+        max-file: "30"
