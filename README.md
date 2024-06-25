@@ -6,6 +6,10 @@ SLAK SLRAMS API 프로젝트는 도로 인프라 데이터를 처리하기 위�
 ## 프로젝트 구조
 프로젝트는 각기 다른 목적을 가진 여러 패키지로 구성되어 있습니다:
 
+## 시퀀스다이어그램
+![diagram.png](diagram.png)
+
+
 - `config`: 설정 클래스
 - `dto`: 데이터 전송 객체 (DTO)
 - `entity`: JPA 엔티티
