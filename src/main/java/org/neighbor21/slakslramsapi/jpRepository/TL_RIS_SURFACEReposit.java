@@ -15,13 +15,13 @@ import java.util.Optional;
  * fileName       : TL_RIS_SURFACEReposit.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : TL_RIS_SURFACE 엔티티의 데이터베이스 작업을 처리하는 클래스
- *  * JdbcTemplate
- *  * Spring 프레임워크에서 제공하는 유틸리티 클래스로, JDBC 작업을 간소화.
+ * description    : A class that handles database operations for the TL_RIS_SURFACE entity.
+ * * JdbcTemplate
+ * * Utility class provided by the Spring Framework to simplify JDBC operations.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Repository
 public class TL_RIS_SURFACEReposit {
@@ -32,9 +32,9 @@ public class TL_RIS_SURFACEReposit {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 연도별 최대 SQNO 조회
+     * Retrieve the maximum SQNO for each year.
      *
-     * @return 연도별 최대 SQNO 리스트
+     * @return A list of the maximum SQNOs by year.
      */
     public List<Object[]> findMaxSqnoBySurveyYear() {
         try {
@@ -47,9 +47,9 @@ public class TL_RIS_SURFACEReposit {
     }
 
     /**
-     * 가장 최근 수집 일시 조회
+     * Retrieve the most recent collection datetime.
      *
-     * @return 가장 최근 수집 일시
+     * @return The most recent collection datetime.
      */
     public Optional<Timestamp> findTopByOrderByCollectionDateTimeDesc() {
         try {

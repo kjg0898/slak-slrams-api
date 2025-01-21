@@ -5,12 +5,12 @@ package org.neighbor21.slakslramsapi.config;
  * fileName       : Constants.java
  * author         : kjg08
  * date           : 24. 5. 10.
- * description    : 애플리케이션에서 사용되는 상수 값을 미리 지정해놓는 클래스.
+ * description    : Classes that pre-specify the values of constants used in your application.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 10.        kjg08           최초 생성
+ * 24. 5. 10.        kjg08           Initial creation
  */
 public class Constants {
-    public static final int DEFAULT_BATCH_SIZE = 10000; // 기본 배치 크기 상수
+    public static final int DEFAULT_BATCH_SIZE = 10000;
 }

@@ -7,11 +7,11 @@ import java.util.List;
  * fileName       : MaxSqnoProvider.java
  * author         : kjg08
  * date           : 24. 6. 13.
- * description    : 최대 순번을 제공하는 인터페이스
+ * description    : Interface for providing the maximum sequence number
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 6. 13.        kjg08           최초 생성
+ * 24. 6. 13.        kjg08           Initial creation
  */
 @FunctionalInterface
 public interface MaxSqnoProvider {

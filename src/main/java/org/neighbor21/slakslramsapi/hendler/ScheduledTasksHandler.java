@@ -19,11 +19,11 @@ import java.util.function.Supplier;
  * fileName       : ScheduledTasksHandler.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : 스케줄러를 사용하여 정기적으로 API를 호출하고 데이터를 처리하는 클래스
+ * description    : A class that periodically calls APIs and processes data using a scheduler
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Component
 public class ScheduledTasksHandler {
@@ -41,12 +41,12 @@ public class ScheduledTasksHandler {
     }
 
     /**
-     * API 호출을 처리하고 데이터를 저장하는 메서드
+     * Method to handle API calls and save the data
      *
-     * @param taskName   작업 이름
-     * @param apiCall    API 호출 함수
-     * @param saveMethod 데이터 저장 함수
-     * @param <T>        데이터 타입
+     * @param taskName   Task name
+     * @param apiCall    API call function
+     * @param saveMethod Data saving function
+     * @param <T>        Data type
      */
     private <T> void processApiCall(String taskName, Supplier<List<T>> apiCall, Consumer<List<T>> saveMethod) {
         logger.info("--------------------------------------------------------------------------------------------");
@@ -74,10 +74,10 @@ public class ScheduledTasksHandler {
     }
 
     /**
-     * API 호출 중 발생한 예외를 처리하는 메서드
+     * Method to handle exceptions that occur during API calls
      *
-     * @param taskName 작업 이름
-     * @param e        발생한 예외
+     * @param taskName Task name
+     * @param e        Exception occurred
      */
     private void handleApiException(String taskName, UnirestException e) {
         if (e.getCause() instanceof java.net.UnknownHostException) {
@@ -88,14 +88,14 @@ public class ScheduledTasksHandler {
     }
 
     /**
-     * 일반 예외를 처리하는 메서드
+     * Method to handle generic exceptions
      *
-     * @param taskName 작업 이름
-     * @param e        발생한 예외
+     * @param taskName Task name
+     * @param e        Exception occurred
      */
     private void handleGenericException(String taskName, Exception e) {
         logger.error("Generic exception for {}: {}", taskName, e.getMessage());
-        // 추가적인 예외 처리 로직을 여기에 추가할 수 있습니다.
+        // Additional exception handling logic can be added here
     }
 
     @Scheduled(cron = "${scheduler.cron.roadwidth}")

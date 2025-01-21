@@ -13,11 +13,11 @@ import java.math.BigDecimal;
  * fileName       : RISRoughnessDTO.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : RIS 거칠기 분포 정보 DTO
+ * description    : RIS About Roughness Distribution DTO
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Getter
 @Setter
@@ -25,16 +25,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class TL_RIS_ROUGH_DISTRIDTO {
 
-    //링크 코드
     @JsonProperty("LinkCode")
     private String linkCode;
-    //분류
     @JsonProperty("Category")
     private String category;
-    //길이
     @JsonProperty("Length")
     private BigDecimal length;
-    //설문 년
     @JsonProperty("SurveyID")
     private String surveyYear;
 }

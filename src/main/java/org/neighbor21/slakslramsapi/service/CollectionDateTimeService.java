@@ -20,11 +20,11 @@ import java.util.Map;
  * fileName       : CollectionDateTimeService.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : 각 데이터의 최신 수집 일시를 관리하는 서비스 클래스
+ * description    : Service class to manage the latest collection datetime for each dataset.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Service
 public class CollectionDateTimeService {
@@ -44,8 +44,9 @@ public class CollectionDateTimeService {
     private TL_TIS_AADTReposit aadtReposit;
 
     /**
-     * 생성자에서 각 리포지토리에 대응하는 조회 메서드를 맵에 등록
-     * 서버 시작 시 DB에서 최신 타임스탬프를 로드하고 파일에 저장
+     * Registers query methods for each repository in a map
+     * and loads the latest timestamp from the database at server startup,
+     * then saves it to a file.
      */
     @PostConstruct
     public void init() {
@@ -55,63 +56,63 @@ public class CollectionDateTimeService {
             repositoryFinderMap.put("surface", this::surfaceLatestCollectionDateTime);
             repositoryFinderMap.put("aadt", this::aadtLatestCollectionDateTime);
 
-            // 시작 시 데이터베이스에서 시간값 로드
+            // Load timestamps from the database at startup
             timestampMap.put("roadwidth", getLatestCollectionDateTimeFromDb("roadwidth"));
             timestampMap.put("roughDistri", getLatestCollectionDateTimeFromDb("roughDistri"));
             timestampMap.put("surface", getLatestCollectionDateTimeFromDb("surface"));
             timestampMap.put("aadt", getLatestCollectionDateTimeFromDb("aadt"));
 
-            // 파일에 디비에서 로드한 시간값 업데이트
+            // Update timestamps in the file with values loaded from the database
             TimestampUtil.writeTimestampsToFile(timestampMap);
         } catch (Exception e) {
-            logger.error("Error during initialization: {}", e.getMessage(), e);
+            logger.error("Initialization failed: {}", e.getMessage(), e);
         }
     }
 
     /**
-     * 파일에서 최신 수집 일시를 가져오는 메서드
+     * Retrieves the latest collection datetime from the file.
      *
-     * @param key 리포지토리 키
-     * @return 최신 수집 일시
+     * @param key Repository key
+     * @return Latest collection datetime
      */
     public Timestamp getLatestCollectionDateTime(String key) {
         return timestampMap.getOrDefault(key, new Timestamp(System.currentTimeMillis() - 86400000));
     }
 
     /**
-     * 키에 해당하는 가장 최근 수집 일시를 DB에서 가져오는 메서드
+     * Retrieves the most recent collection datetime from the database for the given key.
      *
-     * @param key 리포지토리 키
-     * @return 최신 수집 일시
+     * @param key Repository key
+     * @return Latest collection datetime
      */
     private Timestamp getLatestCollectionDateTimeFromDb(String key) {
         try {
             return repositoryFinderMap.getOrDefault(key, () -> new Timestamp(System.currentTimeMillis() - 86400000)).get();
         } catch (Exception e) {
-            logger.error("Error fetching latest collection datetime from DB for {}: {}", key, e.getMessage(), e);
+            logger.error("Failed to fetch the latest collection datetime from the database for {}: {}", key, e.getMessage(), e);
             return new Timestamp(System.currentTimeMillis() - 86400000);
         }
     }
 
     /**
-     * 인서트 성공 시 최신 타임스탬프를 파일에 업데이트
+     * Updates the file with the latest timestamp upon a successful insert.
      *
-     * @param key          리포지토리 키
-     * @param newTimestamp 새로운 타임스탬프
+     * @param key          Repository key
+     * @param newTimestamp New timestamp
      */
     public void updateTimestampIfNeeded(String key, Timestamp newTimestamp) {
         try {
             timestampMap.put(key, newTimestamp);
             TimestampUtil.writeTimestampsToFile(timestampMap);
         } catch (Exception e) {
-            logger.error("Error updating timestamp for {}: {}", key, e.getMessage(), e);
+            logger.error("Failed to update timestamp for {}: {}", key, e.getMessage(), e);
         }
     }
 
     /**
-     * 도로너비 리포지토리에서 가장 최근 수집 일시를 가져오는 메서드
+     * Retrieves the most recent collection datetime from the road width repository.
      *
-     * @return 최신 수집 일시
+     * @return Latest collection datetime
      */
     public Timestamp roadwidthLatestCollectionDateTime() {
         return roadwidthReposit.findTopByOrderByCollectionDateTimeDesc()
@@ -119,9 +120,9 @@ public class CollectionDateTimeService {
     }
 
     /**
-     * 거칠기분포 리포지토리에서 가장 최근 수집 일시를 가져오는 메서드
+     * Retrieves the most recent collection datetime from the roughness distribution repository.
      *
-     * @return 최신 수집 일시
+     * @return Latest collection datetime
      */
     public Timestamp roughDistriLatestCollectionDateTime() {
         return roughDistriReposit.findTopByOrderByCollectionDateTimeDesc()
@@ -129,9 +130,9 @@ public class CollectionDateTimeService {
     }
 
     /**
-     * 표면유형 리포지토리에서 가장 최근 수집 일시를 가져오는 메서드
+     * Retrieves the most recent collection datetime from the surface type repository.
      *
-     * @return 최신 수집 일시
+     * @return Latest collection datetime
      */
     public Timestamp surfaceLatestCollectionDateTime() {
         return surfaceReposit.findTopByOrderByCollectionDateTimeDesc()
@@ -139,9 +140,9 @@ public class CollectionDateTimeService {
     }
 
     /**
-     * 교통분산 리포지토리에서 가장 최근 수집 일시를 가져오는 메서드
+     * Retrieves the most recent collection datetime from the traffic dispersion repository.
      *
-     * @return 최신 수집 일시
+     * @return Latest collection datetime
      */
     public Timestamp aadtLatestCollectionDateTime() {
         return aadtReposit.findTopByOrderByCollectionDateTimeDesc()

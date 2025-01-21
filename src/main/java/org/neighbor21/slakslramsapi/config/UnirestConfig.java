@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 10.        kjg08           최초 생성
+ * 24. 5. 10.        kjg08           Initial creation
  */
 @Configuration
 public class UnirestConfig {

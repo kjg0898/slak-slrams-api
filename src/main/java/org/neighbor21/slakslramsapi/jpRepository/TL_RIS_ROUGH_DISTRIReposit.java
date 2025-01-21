@@ -15,13 +15,13 @@ import java.util.Optional;
  * fileName       : TL_RIS_ROUGH_DISTRIReposit.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : TL_RIS_ROUGH_DISTRI 엔티티의 데이터베이스 작업을 처리하는 클래스
- *  * JdbcTemplate
- *  * Spring 프레임워크에서 제공하는 유틸리티 클래스로, JDBC 작업을 간소화.
+ * description    : This class handles database operations for the TL_RIS_ROUGH_DISTRI entity.
+ * * JdbcTemplate
+ * * A utility class provided by the Spring Framework to simplify JDBC operations.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Repository
 public class TL_RIS_ROUGH_DISTRIReposit {
@@ -32,24 +32,24 @@ public class TL_RIS_ROUGH_DISTRIReposit {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 연도별 최대 SQNO 조회
+     * Retrieves the maximum SQNO by survey year.
      *
-     * @return 연도별 최대 SQNO 리스트
+     * @return A list of maximum SQNOs grouped by survey year.
      */
     public List<Object[]> findMaxSqnoBySurveyYear() {
         try {
             String sql = "SELECT SRVY_YY, MAX(SQNO) FROM srlk.TL_RIS_ROUGH_DISTRI GROUP BY SRVY_YY";
             return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{rs.getString(1), rs.getInt(2)});
         } catch (Exception e) {
-            logger.error("Error querying max SQNO by survey year: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to query max SQNO by survey year", e);
+            logger.error("An error occurred while querying the maximum SQNO by survey year: {}", e.getMessage(), e);
+            throw new RuntimeException("Unable to retrieve the maximum SQNO by survey year", e);
         }
     }
 
     /**
-     * 가장 최근 수집 일시 조회
+     * Retrieves the most recent collection date and time.
      *
-     * @return 가장 최근 수집 일시
+     * @return The most recent collection timestamp.
      */
     public Optional<Timestamp> findTopByOrderByCollectionDateTimeDesc() {
         try {
@@ -62,8 +62,8 @@ public class TL_RIS_ROUGH_DISTRIReposit {
                 }
             });
         } catch (Exception e) {
-            logger.error("Error querying top collection datetime: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to query top collection datetime", e);
+            logger.error("An error occurred while querying the most recent collection timestamp: {}", e.getMessage(), e);
+            throw new RuntimeException("Unable to retrieve the most recent collection timestamp", e);
         }
     }
 

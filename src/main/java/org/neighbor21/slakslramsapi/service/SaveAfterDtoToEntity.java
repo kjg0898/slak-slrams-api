@@ -31,7 +31,7 @@ import java.util.Map;
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Service
 public class SaveAfterDtoToEntity {
@@ -52,9 +52,9 @@ public class SaveAfterDtoToEntity {
     private BatchService batchService;
 
     /**
-     * 도로 너비 데이터를 저장하는 메서드
+     * Method to save road width data.
      *
-     * @param roadWidths 도로 너비 DTO 리스트
+     * @param roadWidths List of Road Width DTOs
      */
     @Transactional
     public void insertTL_RIS_ROADWIDTH(List<TL_RIS_ROADWIDTHDTO> roadWidths) {
@@ -62,9 +62,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 거칠기 분포 데이터를 저장하는 메서드
+     * Method to save roughness distribution data.
      *
-     * @param roughDistris 거칠기 분포 DTO 리스트
+     * @param roughDistris List of Roughness Distribution DTOs
      */
     @Transactional
     public void insertTL_RIS_ROUGH_DISTRI(List<TL_RIS_ROUGH_DISTRIDTO> roughDistris) {
@@ -72,9 +72,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 표면 데이터를 저장하는 메서드
+     * Method to save surface data.
      *
-     * @param surfaces 표면 DTO 리스트
+     * @param surfaces List of Surface DTOs
      */
     @Transactional
     public void insertTL_RIS_SURFACE(List<TL_RIS_SURFACEDTO> surfaces) {
@@ -82,9 +82,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 교통 분산 데이터를 저장하는 메서드
+     * Method to save traffic distribution data.
      *
-     * @param aadts 교통 분산 DTO 리스트
+     * @param aadts List of Traffic Distribution DTOs
      */
     @Transactional
     public void insertTL_TIS_AADT(List<TL_TIS_AADTDTO> aadts) {
@@ -92,11 +92,11 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 도로 너비 DTO를 엔티티로 변환하는 메서드
+     * Method to convert a Road Width DTO into an entity.
      *
-     * @param dto        도로 너비 DTO
-     * @param maxSqnoMap 최대 순번 맵
-     * @return 도로 너비 엔티티
+     * @param dto        Road Width DTO
+     * @param maxSqnoMap Map of maximum sequence numbers
+     * @return Road Width Entity
      */
     private TL_RIS_ROADWIDTHEntity convertToRoadwidthEntity(TL_RIS_ROADWIDTHDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_ROADWIDTHEntity entity = new TL_RIS_ROADWIDTHEntity();
@@ -111,11 +111,11 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 거칠기 분포 DTO를 엔티티로 변환하는 메서드
+     * Method to convert a Roughness Distribution DTO into an entity.
      *
-     * @param dto        거칠기 분포 DTO
-     * @param maxSqnoMap 최대 순번 맵
-     * @return 거칠기 분포 엔티티
+     * @param dto        Roughness Distribution DTO
+     * @param maxSqnoMap Map of maximum sequence numbers
+     * @return Roughness Distribution Entity
      */
     private TL_RIS_ROUGH_DISTRIEntity convertToRoughDistriEntity(TL_RIS_ROUGH_DISTRIDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_ROUGH_DISTRIEntity entity = new TL_RIS_ROUGH_DISTRIEntity();
@@ -129,11 +129,11 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 표면 DTO를 엔티티로 변환하는 메서드
+     * Method to convert a Surface DTO into an entity.
      *
-     * @param dto        표면 DTO
-     * @param maxSqnoMap 최대 순번 맵
-     * @return 표면 엔티티
+     * @param dto        Surface DTO
+     * @param maxSqnoMap Map of maximum sequence numbers
+     * @return Surface Entity
      */
     private TL_RIS_SURFACEEntity convertToSurfaceEntity(TL_RIS_SURFACEDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_RIS_SURFACEEntity entity = new TL_RIS_SURFACEEntity();
@@ -148,11 +148,11 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 교통 분산 DTO를 엔티티로 변환하는 메서드
+     * Method to convert a Traffic Distribution DTO into an entity.
      *
-     * @param dto        교통 분산 DTO
-     * @param maxSqnoMap 최대 순번 맵
-     * @return 교통 분산 엔티티
+     * @param dto        Traffic Distribution DTO
+     * @param maxSqnoMap Map of maximum sequence numbers
+     * @return Traffic Distribution Entity
      */
     private TL_TIS_AADTEntity convertToAadtEntity(TL_TIS_AADTDTO dto, Map<String, Integer> maxSqnoMap) {
         TL_TIS_AADTEntity entity = new TL_TIS_AADTEntity();
@@ -167,9 +167,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 도로 너비 데이터를 배치 삽입하는 메서드
+     * Method to batch insert Road Width data.
      *
-     * @param entities 도로 너비 엔티티 리스트
+     * @param entities List of Road Width Entities
      */
     private void roadwidthBatchInsert(List<TL_RIS_ROADWIDTHEntity> entities) {
         String sql = "INSERT INTO srlk.TL_RIS_ROADWIDTH (LINK_CD, ROAD_TYPE, WIDTH_CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -185,9 +185,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 거칠기 분포 데이터를 배치 삽입하는 메서드
+     * Method to batch insert roughness distribution data.
      *
-     * @param entities 거칠기 분포 엔티티 리스트
+     * @param entities List of Roughness Distribution Entities
      */
     private void roughDistriBatchInsert(List<TL_RIS_ROUGH_DISTRIEntity> entities) {
         String sql = "INSERT INTO srlk.TL_RIS_ROUGH_DISTRI (LINK_CD, CLSF, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?)";
@@ -202,9 +202,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 표면 데이터를 배치 삽입하는 메서드
+     * Method to batch insert Surface data.
      *
-     * @param entities 표면 엔티티 리스트
+     * @param entities List of Surface Entities
      */
     private void surfaceBatchInsert(List<TL_RIS_SURFACEEntity> entities) {
         String sql = "INSERT INTO srlk.TL_RIS_SURFACE (LINK_CD, SURF_CLSF, SURF_DESCR, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -220,9 +220,9 @@ public class SaveAfterDtoToEntity {
     }
 
     /**
-     * 교통 분산 데이터를 배치 삽입하는 메서드
+     * Method to batch insert Traffic Distribution data.
      *
-     * @param entities 교통 분산 엔티티 리스트
+     * @param entities List of Traffic Distribution Entities
      */
     private void aadtBatchInsert(List<TL_TIS_AADTEntity> entities) {
         String sql = "INSERT INTO srlk.TL_TIS_AADT (LINK_CD, AAD_TRFVLM, CATEG, LEN, SRVY_YY, CLCT_DT, SQNO) VALUES (?, ?, ?, ?, ?, ?, ?)";

@@ -13,8 +13,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 // * JdbcTemplate
-// * Spring 프레임워크에서 제공하는 유틸리티 클래스로, JDBC 작업을 간소화.
 
+/**
+ * The type Batch service.
+ */
 @Service
 public class BatchService {
     private static final Logger logger = LoggerFactory.getLogger(BatchService.class);
@@ -23,13 +25,13 @@ public class BatchService {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 엔티티 리스트를 배치 삽입합니다.
-     * SQLException 발생 시 최대 2회까지 재시도합니다.
+     * Performs batch insertion for a list of entities.
+     * Retries up to two times in case of SQLException.
      *
-     * @param entities 삽입할 엔티티 리스트
-     * @param sql      삽입할 SQL 문
-     * @param setter   PreparedStatement 설정을 위한 BatchPreparedStatementSetter
-     * @param <T>      엔티티 타입
+     * @param <T>      The entity type.
+     * @param entities The list of entities to insert.
+     * @param sql      The SQL query for inserting data.
+     * @param setter   The BatchPreparedStatementSetter for configuring PreparedStatement.
      */
     @Retryable(value = {SQLException.class}, maxAttempts = 2)
     @Transactional
@@ -55,15 +57,27 @@ public class BatchService {
                         }
                     });
                 } catch (Exception e) {
-                    logger.error("Batch insert attempt failed at index {} to {}: {}", i, end, e.getMessage(), e);
+                    logger.error("Batch insertion failed in the range of index {} to {}: {}", i, end, e.getMessage(), e);
                     throw new RuntimeException("Batch insert failed", e);
                 }
             }
         }
     }
 
+    /**
+     * The interface Batch prepared statement setter.
+     *
+     * @param <T> the type parameter
+     */
     @FunctionalInterface
     public interface BatchPreparedStatementSetter<T> {
+        /**
+         * Sets values.
+         *
+         * @param ps     the ps
+         * @param entity the entity
+         * @throws SQLException the sql exception
+         */
         void setValues(PreparedStatement ps, T entity) throws SQLException;
     }
 }

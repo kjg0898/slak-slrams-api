@@ -16,11 +16,11 @@ import java.sql.Timestamp;
  * fileName       : TISTrafficDispersionEntity.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : TIS 교통분산 정보	 엔티티  TL_TIS_AADT
+ * description    : TIS Traffic Distribution Information Entity TL_TIS_AADT
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Getter
 @Setter
@@ -48,5 +48,5 @@ public class TL_TIS_AADTEntity {
     private Timestamp collectionDateTime;
 
     @Column(name = "SQNO")
-    private int sqno; // 순번 추가
+    private int sqno;
 }

@@ -15,13 +15,13 @@ import java.util.Optional;
  * fileName       : TL_TIS_AADTReposit.java
  * author         : kjg08
  * date           : 24. 5. 2.
- * description    : TL_TIS_AADT 엔티티의 데이터베이스 작업을 처리하는 클래스
- *  * JdbcTemplate
- *  * Spring 프레임워크에서 제공하는 유틸리티 클래스로, JDBC 작업을 간소화.
+ * description    : This class handles database operations for the TL_TIS_AADT entity.
+ * * JdbcTemplate
+ * * A utility class provided by the Spring Framework to simplify JDBC operations.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 5. 2.        kjg08           최초 생성
+ * 24. 5. 2.        kjg08           Initial creation
  */
 @Repository
 public class TL_TIS_AADTReposit {
@@ -32,24 +32,24 @@ public class TL_TIS_AADTReposit {
     private JdbcTemplate jdbcTemplate;
 
     /**
-     * 연도별 최대 SQNO 조회
+     * Retrieve the maximum SQNO grouped by survey year.
      *
-     * @return 연도별 최대 SQNO 리스트
+     * @return A list of maximum SQNO values grouped by survey year.
      */
     public List<Object[]> findMaxSqnoBySurveyYear() {
         try {
             String sql = "SELECT SRVY_YY, MAX(SQNO) FROM srlk.TL_TIS_AADT GROUP BY SRVY_YY";
             return jdbcTemplate.query(sql, (rs, rowNum) -> new Object[]{rs.getString(1), rs.getInt(2)});
         } catch (Exception e) {
-            logger.error("Error querying max SQNO by survey year: {}", e.getMessage(), e);
+            logger.error("Error occurred while querying maximum SQNO by survey year: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to query max SQNO by survey year", e);
         }
     }
 
     /**
-     * 가장 최근 수집 일시 조회
+     * Retrieve the most recent collection timestamp.
      *
-     * @return 가장 최근 수집 일시
+     * @return The most recent collection timestamp.
      */
     public Optional<Timestamp> findTopByOrderByCollectionDateTimeDesc() {
         try {
@@ -62,7 +62,7 @@ public class TL_TIS_AADTReposit {
                 }
             });
         } catch (Exception e) {
-            logger.error("Error querying top collection datetime: {}", e.getMessage(), e);
+            logger.error("Error occurred while querying the most recent collection timestamp: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to query top collection datetime", e);
         }
     }

@@ -26,11 +26,11 @@ import java.util.stream.Collectors;
  * fileName       : CommonUtility.java
  * author         : kjg08
  * date           : 24. 6. 12.
- * description    : 공통 유틸리티 클래스 공통 처리 로직을 포함하고 있으며, 여러 서비스에서 재사용됩니다.
+ * description    : Common utility class containing shared processing logic, reusable across multiple services.
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 6. 12.        kjg08           최초 생성
+ * 24. 6. 12.        kjg08           Initial creation
  */
 @Component
 public class CommonUtility {
@@ -40,14 +40,14 @@ public class CommonUtility {
     private CollectionDateTimeService collectionDateTimeService;
 
     /**
-     * 공통 삽입 처리 메서드
+     * Common insert processing method.
      *
-     * @param dtos            DTO 리스트
-     * @param converter       엔티티 변환 함수
-     * @param maxSqnoProvider 최대 순번 제공 함수
-     * @param batchInserter   배치 삽입 함수
-     * @param processName     프로세스 이름
-     * @param timestampKey    타임스탬프 키
+     * @param dtos            List of DTOs
+     * @param converter       Entity conversion function
+     * @param maxSqnoProvider Function to provide the maximum sequence number
+     * @param batchInserter   Batch insertion function
+     * @param processName     Process name
+     * @param timestampKey    Timestamp key
      */
     @Transactional
     public <T, E> void processInsert(List<T> dtos, EntityConverter<T, E> converter, MaxSqnoProvider maxSqnoProvider, BatchInserter<E> batchInserter, String processName, String timestampKey) {
@@ -63,7 +63,7 @@ public class CommonUtility {
                     .map(dto -> {
                         E entity = converter.convert(dto, maxSqnoMap);
                         if (entity == null) {
-                            logger.warn("Entity conversion resulted in null for DTO: {}", dto);
+                            logger.warn("Entity conversion returned null for DTO: {}", dto);
                         }
                         return entity;
                     })
@@ -80,18 +80,18 @@ public class CommonUtility {
             Timestamp latestTimestamp = new Timestamp(System.currentTimeMillis());
             collectionDateTimeService.updateTimestampIfNeeded(timestampKey, latestTimestamp);
 
-            logger.info("{} process completed", processName);
+            logger.info("{} process completed successfully", processName);
         } catch (Exception e) {
-            logger.error("Failed to insert entities in {}: {}", processName, e.getMessage(), e);
+            logger.error("Error occurred during the insertion of entities in {}: {}", processName, e.getMessage(), e);
             throw new RuntimeException("Transaction rolled back due to insertion failure", e);
         }
     }
 
     /**
-     * DTO에서 설문 연도를 추출하는 메서드
+     * Method to extract the survey year from a DTO.
      *
-     * @param dto DTO 객체
-     * @return 설문 연도
+     * @param dto DTO object
+     * @return Survey year
      */
     private <T> String getSurveyYear(T dto) {
         if (dto instanceof TL_RIS_ROADWIDTHDTO) {
@@ -107,10 +107,10 @@ public class CommonUtility {
     }
 
     /**
-     * 최대 순번 맵을 가져오는 메서드
+     * Method to retrieve the map of maximum sequence numbers.
      *
-     * @param results 쿼리 결과 리스트
-     * @return 최대 순번 맵
+     * @param results Query result list
+     * @return Map of maximum sequence numbers
      */
     private Map<String, Integer> getMaxSqnoMap(List<Object[]> results) {
         return results.stream()

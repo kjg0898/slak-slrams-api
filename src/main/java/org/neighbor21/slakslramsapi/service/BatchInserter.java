@@ -7,11 +7,11 @@ import java.util.List;
  * fileName       : BatchInserter.java
  * author         : kjg08
  * date           : 24. 6. 13.
- * description    : 엔티티를 배치 삽입하는 인터페이스
+ * description    : Interface for batch inserting entities
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 24. 6. 13.        kjg08           최초 생성
+ * 24. 6. 13.        kjg08           Initial creation
  */
 @FunctionalInterface
 public interface BatchInserter<E> {
